@@ -1,6 +1,7 @@
 import React from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import '../styles/Dashboard.css'
+import Navbar from './Navbar'
 
 const Dashboard = () => {
   const { user, signOut } = useAuth()
@@ -15,7 +16,9 @@ const Dashboard = () => {
   }
 
   return (
+    
     <div className = "main-div">
+      <Navbar/>
       <h2>Welcome to your Dashboard!</h2>
       <p>Email: {user?.email}</p>
       <p>User ID: {user?.id}</p>
