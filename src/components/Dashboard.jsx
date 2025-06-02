@@ -1,5 +1,6 @@
 import React from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import '../styles/Dashboard.css'
 
 const Dashboard = () => {
   const { user, signOut } = useAuth()
@@ -14,28 +15,11 @@ const Dashboard = () => {
   }
 
   return (
-    <div style={{ 
-      padding: '2rem', 
-      textAlign: 'center',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      minHeight: '100vh',
-      color: 'white'
-    }}>
+    <div className = "main-div">
       <h2>Welcome to your Dashboard!</h2>
       <p>Email: {user?.email}</p>
       <p>User ID: {user?.id}</p>
-      <button 
-        onClick={handleSignOut}
-        style={{
-          padding: '10px 20px',
-          background: 'white',
-          color: '#667eea',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          fontWeight: '600'
-        }}
-      >
+      <button className = "sign-out-btn" onClick={handleSignOut}>
         Sign Out
       </button>
     </div>
