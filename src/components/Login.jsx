@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import './Login.css'
+import '../styles/Login.css'
 
 const Login = () => {
   const [email, setEmail] = useState('')
@@ -48,7 +48,7 @@ const Login = () => {
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          <h2>{isSignUp ? 'Create Account' : 'Welcome Back'}</h2>
+          <h2>{isSignUp ? 'Create Account' : 'Welcome to BirthCertify'}</h2>
           <p className="login-subtitle">
             {isSignUp 
               ? 'Sign up to get started with your account' 
