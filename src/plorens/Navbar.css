@@ -1,0 +1,54 @@
+.headerNav{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 20px 10%;
+    background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+}
+
+.logoNav{
+    text-decoration: none;
+    font-size: 32px;
+    color: #ffffff;
+    font-weight: bold;
+    gap: 8px;
+    display: flex;
+}
+
+.logoImg{
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.navLinks a{
+    text-decoration: none;
+    position: relative;
+    font-size: 16px;
+    color: #ffffff;
+    font-weight: 500;
+    margin-left: 40px;
+}
+
+.navLinks a::before{
+    text-decoration: none;
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 0%;
+    height: 2px;
+    background-color: #ffffff;
+    transition: 0.3s;
+}
+
+.navLinks a:hover::before{
+    width: 100%;
+    transform: scaleX(1);
+}
