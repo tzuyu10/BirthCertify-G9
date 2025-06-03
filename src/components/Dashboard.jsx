@@ -1,5 +1,6 @@
 import React from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { useUserRole } from '../hooks/useUserRole'
 import '../styles/Dashboard.css'
 import Navbar from './Navbar'
 
