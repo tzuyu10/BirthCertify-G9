@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
+import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { useUserRole } from '../hooks/useUserRole'
 import '../styles/Login.css'
 
 const Login = () => {
@@ -9,6 +11,17 @@ const Login = () => {
   const [message, setMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const { signIn, signUp, signInWithGoogle } = useAuth()
+  const { isAuthenticated, isAdmin, loading: roleLoading } = useUserRole()
+  const location = useLocation()
+
+  // Remove the redirect logic - let RoleBasedRedirect handle it
+  // if (isAuthenticated() && !roleLoading) {
+  //   const from = location.state?.from?.pathname;
+  //   if (from) {
+  //     return <Navigate to={from} replace />;
+  //   }
+  //   return <Navigate to={isAdmin() ? "/admin/dashboard" : "/dashboard"} replace />;
+  // }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -23,6 +36,7 @@ const Login = () => {
       } else {
         const { error } = await signIn(email, password)
         if (error) throw error
+        // Success - RoleBasedRedirect will handle the redirect
       }
     } catch (error) {
       setMessage(error.message)
@@ -37,11 +51,21 @@ const Login = () => {
     try {
       const { error } = await signInWithGoogle()
       if (error) throw error
+      // Success - RoleBasedRedirect will handle the redirect
     } catch (error) {
       setMessage(error.message)
     } finally {
       setIsLoading(false)
     }
+  }
+
+  // Redirect if already authenticated
+  if (isAuthenticated() && !roleLoading) {
+    const from = location.state?.from?.pathname;
+    if (from) {
+      return <Navigate to={from} replace />;
+    }
+    return <Navigate to={isAdmin() ? "/admin/dashboard" : "/dashboard"} replace />;
   }
 
   return (

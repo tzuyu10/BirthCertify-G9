@@ -1,15 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { createClient } from '@supabase/supabase-js'
-
-// Supabase configuration inline
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-
-if (!supabaseUrl || !supabaseKey) {
-  console.error('Missing Supabase environment variables')
-}
-
-const supabase = createClient(supabaseUrl || '', supabaseKey || '')
+import { supabase } from '../../supabase'
 
 const AuthContext = createContext({})
 
