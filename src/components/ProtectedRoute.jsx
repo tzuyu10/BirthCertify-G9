@@ -1,6 +1,6 @@
-import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { useUserRole } from '../hooks/useUserRole';
+import React from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { useUserRole } from "../hooks/useUserRole";
 
 const ProtectedRoute = ({ children, adminOnly = false }) => {
   const { loading, isAuthenticated, isAdmin } = useUserRole();
@@ -9,7 +9,7 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
   if (loading) {
     return (
       <div className="loading-container">
-        <div className="loading-spinner">Loading...</div>
+        <div className="loading-spinner"></div>
       </div>
     );
   }
