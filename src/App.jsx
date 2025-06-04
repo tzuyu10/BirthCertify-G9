@@ -8,6 +8,8 @@ import {
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleBasedRedirect from "./components/RoleBasedRedirect";
+import LandingPage from "./components/LandingPage";
+import SignUp from "./components/Signup";
 import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
 import AdminDashboard from "./components/AdminDashboard";
@@ -66,9 +68,11 @@ function AppRoutes() {
   if (!user) {
     return (
       <Routes>
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<SignUp />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
   }
@@ -78,7 +82,7 @@ function AppRoutes() {
     <Routes>
       {/* Home route - redirects based on user role */}
       <Route
-        path="/"
+        path="/home"
         element={
           <ProtectedRoute>
             <AuthenticatedHome />
