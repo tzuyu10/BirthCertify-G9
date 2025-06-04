@@ -161,437 +161,199 @@ function AdminDashboard() {
     console.log('Direct query error:', error)
   }
 
-  const StatCard = ({ title, value, icon, color = '#3498db' }) => (
-    <div className="stat-card" style={{
-      background: 'white',
-      borderRadius: '8px',
-      padding: '1.5rem',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-      border: `3px solid ${color}`,
-      textAlign: 'center',
-      transition: 'transform 0.2s ease, box-shadow 0.2s ease'
-    }}>
-      <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>{icon}</div>
-      <div style={{ fontSize: '2rem', fontWeight: 'bold', color, marginBottom: '0.5rem' }}>
-        {value}
-      </div>
-      <div style={{ color: '#666', fontSize: '0.9rem' }}>{title}</div>
+  const StatCard = ({ title, value, icon, color = 'blue' }) => (
+    <div className={`stat-card stat-card-${color}`}>
+      <div className="stat-icon">{icon}</div>
+      <div className="stat-value">{value}</div>
+      <div className="stat-title">{title}</div>
     </div>
   )
 
   // Show error state
   if (error) {
     return (
-      <div className="admin-dashboard" style={{ 
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        padding: '2rem',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '100%',
-        margin: 0
-      }}>
-        <div style={{
-          background: 'white',
-          borderRadius: '8px',
-          padding: '2rem',
-          textAlign: 'center',
-          maxWidth: '500px',
-          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-        }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚠️</div>
-          <h2 style={{ color: '#e74c3c', marginBottom: '1rem' }}>Error Loading Dashboard</h2>
-          <p style={{ color: '#666', marginBottom: '1.5rem' }}>{error}</p>
-          <button
-            onClick={fetchUsers}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#3498db',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              fontWeight: 'bold',
-              marginRight: '1rem'
-            }}
-          >
-            Retry
-          </button>
-          <button
-            onClick={debugInfo}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#f39c12',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              fontWeight: 'bold',
-              marginRight: '1rem'
-            }}
-          >
-            Debug Info
-          </button>
-          <button
-            onClick={handleSignOut}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#95a5a6',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              fontWeight: 'bold'
-            }}
-          >
-            Sign Out
-          </button>
+      <div className="admin-dashboard">
+        <div className="dashboard-header">
+          <div className="header-content">
+            <h1 className="dashboard-title">Admin Dashboard</h1>
+            <p className="dashboard-subtitle">Error occurred</p>
+          </div>
+          <div className="header-actions">
+            <button onClick={handleSignOut} className="btn btn-secondary">
+              Sign Out
+            </button>
+          </div>
+        </div>
+        
+        <div className="dashboard-content">
+          <div className="error-container">
+            <div className="error-card">
+              <div className="error-icon">⚠️</div>
+              <h2 className="error-title">Error Loading Dashboard</h2>
+              <p className="error-message">{error}</p>
+              <div className="error-actions">
+                <button onClick={fetchUsers} className="btn btn-primary">
+                  Retry
+                </button>
+                <button onClick={debugInfo} className="btn btn-warning">
+                  Debug Info
+                </button>
+                <button onClick={handleSignOut} className="btn btn-secondary">
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="admin-dashboard" style={{ 
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      padding: '2rem',
-      width: '100%',
-      margin: 0
-    }}>
-      <style jsx>{`
-        .stat-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-        
-        .user-row:hover {
-          background-color: #f1f3f4 !important;
-        }
-        
-        .action-button:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        
-        @media (max-width: 768px) {
-          .dashboard-header {
-            flex-direction: column;
-            gap: 1rem;
-            text-align: center;
-          }
-          
-          .stats-grid {
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
-          }
-          
-          .table-container {
-            font-size: 0.85rem;
-          }
-        }
-      `}</style>
-
+    <div className="admin-dashboard">
       {/* Header */}
-      <div className="dashboard-header center-content" style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        marginBottom: '2rem',
-        width: '100%',
-        maxWidth: '1400px',
-        margin: '0 auto 2rem auto'
-      }}>
-        <div>
-          <h1 style={{ color: 'white', margin: 0, fontSize: '2.5rem' }}>
-            Admin Dashboard
-          </h1>
-          <p style={{ color: 'rgba(255,255,255,0.8)', margin: '0.5rem 0 0 0' }}>
+      <div className="dashboard-header">
+        <div className="header-content">
+          <h1 className="dashboard-title">Admin Dashboard</h1>
+          <p className="dashboard-subtitle">
             Welcome back, {currentUser?.email} ({currentUserRole})
           </p>
         </div>
-        <div>
-          <button
-            onClick={debugInfo}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#f39c12',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              fontWeight: 'bold',
-              marginRight: '1rem'
-            }}
-          >
+        <div className="header-actions">
+          <button onClick={debugInfo} className="btn btn-warning">
             Debug
           </button>
-          <button
-            onClick={handleSignOut}
-            className="action-button"
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#e74c3c',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              fontWeight: 'bold',
-              transition: 'all 0.2s ease'
-            }}
-          >
+          <button onClick={handleSignOut} className="btn btn-danger">
             Sign Out
           </button>
         </div>
       </div>
 
-      {loading ? (
-        <div className="loading-container center-content" style={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          height: '300px',
-          color: 'white',
-          flexDirection: 'column',
-          gap: '1rem',
-          width: '100%',
-          maxWidth: '1400px',
-          margin: '0 auto'
-        }}>
-          <div style={{
-            border: '4px solid rgba(255,255,255,0.3)',
-            borderTop: '4px solid white',
-            borderRadius: '50%',
-            width: '40px',
-            height: '40px',
-            animation: 'spin 1s linear infinite'
-          }}></div>
-          <p>Loading dashboard data...</p>
-          <style>{`
-            @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
-            }
-          `}</style>
-        </div>
-      ) : (
-        <>
-          {/* Statistics Cards */}
-          <div className="stats-container">
-            <div className="stats-grid full-width" style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-              gap: '1.5rem',
-              marginBottom: '2rem',
-              width: '100%',
-              maxWidth: '1400px',
-              margin: '0 auto 2rem auto'
-            }}>
-              <StatCard 
-                title="Total Users" 
-                value={stats.totalUsers}
-                icon="👥"
-                color="#3498db"
-              />
-              <StatCard 
-                title="Administrators" 
-                value={stats.adminsCount}
-                icon="👑"
-                color="#9b59b6"
-              />
-              <StatCard 
-                title="Regular Users" 
-                value={stats.regularUsersCount}
-                icon="👤"
-                color="#2ecc71"
-              />
-              <StatCard 
-                title="New This Week" 
-                value={stats.newUsersThisWeek}
-                icon="📈"
-                color="#f39c12"
-              />
-              <StatCard 
-                title="New This Month" 
-                value={stats.newUsersThisMonth}
-                icon="📊"
-                color="#e67e22"
-              />
-            </div>
+      {/* Main Content Area */}
+      <div className="dashboard-content">
+        {loading ? (
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <p className="loading-text">Loading dashboard data...</p>
           </div>
-
-          {/* User Management Table */}
-          <div className="table-section center-content">
-            <div className="table-wrapper" style={{
-              background: 'white',
-              borderRadius: '8px',
-              padding: '1.5rem',
-              boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-              width: '100%',
-              maxWidth: '1400px',
-              margin: '0 auto'
-            }}>
-              <h2 style={{ marginTop: 0, color: '#2c3e50', marginBottom: '1.5rem' }}>
-                User Management ({users.length} users)
-              </h2>
-              
-              <div className="table-container full-width" style={{ overflowX: 'auto', width: '100%' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr style={{ 
-                      background: '#f8f9fa',
-                      borderBottom: '2px solid #dee2e6'
-                    }}>
-                      <th style={{ 
-                        padding: '1rem', 
-                        textAlign: 'left',
-                        fontWeight: 'bold',
-                        color: '#495057'
-                      }}>Email</th>
-                      <th style={{ 
-                        padding: '1rem', 
-                        textAlign: 'left',
-                        fontWeight: 'bold',
-                        color: '#495057'
-                      }}>Name</th>
-                      <th style={{ 
-                        padding: '1rem', 
-                        textAlign: 'left',
-                        fontWeight: 'bold',
-                        color: '#495057'
-                      }}>Created</th>
-                      <th style={{ 
-                        padding: '1rem', 
-                        textAlign: 'left',
-                        fontWeight: 'bold',
-                        color: '#495057'
-                      }}>Status</th>
-                      <th style={{ 
-                        padding: '1rem', 
-                        textAlign: 'left',
-                        fontWeight: 'bold',
-                        color: '#495057'
-                      }}>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.map((user, index) => {
-                      const isAdmin = user.role === 'admin'
-                      const isCurrentUser = user.user_id === currentUser?.id
-                      
-                      return (
-                        <tr key={user.user_id} className="user-row" style={{ 
-                          borderBottom: '1px solid #dee2e6',
-                          backgroundColor: index % 2 === 0 ? '#ffffff' : '#f8f9fa',
-                          transition: 'background-color 0.2s ease'
-                        }}>
-                          <td style={{ padding: '1rem', fontWeight: '500' }}>
-                            {user.email || 'No email'}
-                            {isCurrentUser && (
-                              <span style={{ 
-                                marginLeft: '0.5rem',
-                                padding: '0.25rem 0.5rem',
-                                background: '#17a2b8',
-                                color: 'white',
-                                borderRadius: '12px',
-                                fontSize: '0.75rem'
-                              }}>
-                                You
-                              </span>
-                            )}
-                          </td>
-                          <td style={{ padding: '1rem', color: '#6c757d' }}>
-                            {user.fname && user.lname ? `${user.fname} ${user.lname}` : 'No name'}
-                          </td>
-                          <td style={{ padding: '1rem', color: '#6c757d' }}>
-                            {user.created_at ? new Date(user.created_at).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric'
-                            }) : 'Unknown'}
-                          </td>
-                          <td style={{ padding: '1rem' }}>
-                            <span style={{
-                              padding: '0.5rem 1rem',
-                              borderRadius: '20px',
-                              fontSize: '0.85rem',
-                              fontWeight: 'bold',
-                              background: isAdmin ? '#d4edda' : '#f8d7da',
-                              color: isAdmin ? '#155724' : '#721c24',
-                              border: `1px solid ${isAdmin ? '#c3e6cb' : '#f5c6cb'}`
-                            }}>
-                              {isAdmin ? '👑 Admin' : '👤 User'}
-                            </span>
-                          </td>
-                          <td style={{ padding: '1rem' }}>
-                            <button
-                              onClick={() => toggleAdminStatus(user.user_id, user.role)}
-                              disabled={isCurrentUser}
-                              className="action-button"
-                              style={{
-                                padding: '0.5rem 1rem',
-                                backgroundColor: isCurrentUser 
-                                  ? '#6c757d' 
-                                  : (isAdmin ? '#dc3545' : '#28a745'),
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: isCurrentUser ? 'not-allowed' : 'pointer',
-                                fontSize: '0.85rem',
-                                fontWeight: 'bold',
-                                opacity: isCurrentUser ? 0.6 : 1,
-                                transition: 'all 0.2s ease'
-                              }}
-                            >
-                              {isCurrentUser 
-                                ? 'Cannot modify self'
-                                : (isAdmin ? 'Remove Admin' : 'Make Admin')
-                              }
-                            </button>
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
+        ) : (
+          <>
+            {/* Statistics Cards */}
+            <div className="stats-container">
+              <div className="stats-grid">
+                <StatCard 
+                  title="Total Users" 
+                  value={stats.totalUsers}
+                  icon="👥"
+                  color="blue"
+                />
+                <StatCard 
+                  title="Administrators" 
+                  value={stats.adminsCount}
+                  icon="👑"
+                  color="purple"
+                />
+                <StatCard 
+                  title="Regular Users" 
+                  value={stats.regularUsersCount}
+                  icon="👤"
+                  color="green"
+                />
+                <StatCard 
+                  title="New This Week" 
+                  value={stats.newUsersThisWeek}
+                  icon="📈"
+                  color="orange"
+                />
+                <StatCard 
+                  title="New This Month" 
+                  value={stats.newUsersThisMonth}
+                  icon="📊"
+                  color="red"
+                />
               </div>
-              
-              {users.length === 0 && !loading && (
-                <div style={{ 
-                  textAlign: 'center', 
-                  padding: '3rem',
-                  color: '#6c757d'
-                }}>
-                  <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>👥</div>
-                  <h3>No users found</h3>
-                  <p>This usually means RLS policies are blocking access or no users exist.</p>
-                  <button
-                    onClick={debugInfo}
-                    style={{
-                      padding: '0.75rem 1.5rem',
-                      backgroundColor: '#f39c12',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      fontSize: '1rem',
-                      fontWeight: 'bold',
-                      marginTop: '1rem'
-                    }}
-                  >
-                    Run Debug
-                  </button>
-                </div>
-              )}
             </div>
-          </div>
-        </>
-      )}
+
+            {/* User Management Table */}
+            <div className="table-section">
+              <div className="table-wrapper">
+                <h2 className="table-title">
+                  User Management ({users.length} users)
+                </h2>
+                
+                <div className="table-container">
+                  <table className="users-table">
+                    <thead>
+                      <tr>
+                        <th>Email</th>
+                        <th>Name</th>
+                        <th>Created</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map((user, index) => {
+                        const isAdmin = user.role === 'admin'
+                        const isCurrentUser = user.user_id === currentUser?.id
+                        
+                        return (
+                          <tr key={user.user_id} className={`user-row ${index % 2 === 0 ? 'even' : 'odd'}`}>
+                            <td className="user-email">
+                              {user.email || 'No email'}
+                              {isCurrentUser && (
+                                <span className="current-user-badge">You</span>
+                              )}
+                            </td>
+                            <td className="user-name">
+                              {user.fname && user.lname ? `${user.fname} ${user.lname}` : 'No name'}
+                            </td>
+                            <td className="user-created">
+                              {user.created_at ? new Date(user.created_at).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
+                              }) : 'Unknown'}
+                            </td>
+                            <td className="user-status">
+                              <span className={`status-badge ${isAdmin ? 'admin' : 'user'}`}>
+                                {isAdmin ? '👑 Admin' : '👤 User'}
+                              </span>
+                            </td>
+                            <td className="user-actions">
+                              <button
+                                onClick={() => toggleAdminStatus(user.user_id, user.role)}
+                                disabled={isCurrentUser}
+                                className={`action-button ${isCurrentUser ? 'disabled' : (isAdmin ? 'remove' : 'make')}`}
+                              >
+                                {isCurrentUser 
+                                  ? 'Cannot modify self'
+                                  : (isAdmin ? 'Remove Admin' : 'Make Admin')
+                                }
+                              </button>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                
+                {users.length === 0 && !loading && (
+                  <div className="empty-state">
+                    <div className="empty-icon">👥</div>
+                    <h3 className="empty-title">No users found</h3>
+                    <p className="empty-message">This usually means RLS policies are blocking access or no users exist.</p>
+                    <button onClick={debugInfo} className="btn btn-warning">
+                      Run Debug
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   )
 }
