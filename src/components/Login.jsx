@@ -2,8 +2,7 @@ import React, { useState } from 'react'
 import { Navigate, useLocation, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useUserRole } from '../hooks/useUserRole'
-import '../styles/loginstyle.css'
-
+import '../styles/Login.css'
 
 const Login = () => {
   const [email, setEmail] = useState('')
@@ -54,81 +53,84 @@ const Login = () => {
   }
 
   return (
-  <div className="wrapper">
-    <div>
-      <h1>Sign in</h1>
+    <div className="login-page">
+      <div className="login-container">
+        <div className="login-wrapper">
+          <div>
+            <h1 className="login-title">Sign In</h1>
 
-      {message && (
-        <div className="message error">
-          {message}
+            {message && (
+              <div className="login-message error">
+                {message}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="login-form">
+              <div className="login-input-box">
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={isLoading}
+                />
+                <i className='bx bx-user'></i>
+              </div>
+
+              <div className="login-input-box">
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={isLoading}
+                />
+                <i className='bx bx-lock'></i>
+              </div>
+
+              <div className="login-remember-forgot">
+                <label>
+                  <input type="checkbox" />
+                  Remember Me
+                </label>
+                <a href="#">Forgot Password</a>
+              </div>
+
+              <button
+                type="submit"
+                className="login-btn"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Loading...' : 'Login'}
+              </button>
+            </form>
+
+            <button
+              type="button"
+              className="login-google-btn"
+              onClick={handleGoogleSignIn}
+              disabled={isLoading}
+            >
+              <img
+                src="https://developers.google.com/identity/images/g-logo.png"
+                alt="Google logo"
+              />
+              Continue with Google
+            </button>
+
+            <div className="login-register-link">
+              <p>
+                Don't have an account?{' '}
+                <Link to="/signup">Register</Link>
+              </p>
+            </div>
+          </div>
         </div>
-      )}
-
-      <form onSubmit={handleSubmit}>
-        <div className="input-box">
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            disabled={isLoading}
-          />
-          <i className='bx bx-user'></i>
-        </div>
-
-        <div className="input-box">
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            disabled={isLoading}
-          />
-          <i className='bx bx-lock'></i>
-        </div>
-
-        <div className="remember-forgot">
-          <label>
-            <input type="checkbox" />
-            Remember Me
-          </label>
-          <a href="#">Forgot Password</a>
-        </div>
-
-        <button
-          type="submit"
-          className="btn"
-          disabled={isLoading}
-        >
-          {isLoading ? 'Loading...' : 'Login'}
-        </button>
-      </form>
-
-      <button
-        type="button"
-        className="google-btn"
-        onClick={handleGoogleSignIn}
-        disabled={isLoading}
-      >
-        <img
-          src="https://developers.google.com/identity/images/g-logo.png"
-          alt="Google logo"
-        />
-        Continue with Google
-      </button>
-
-      <div className="register-link">
-        <p>
-          Don't have an account?{' '}
-          <Link to="/signup">Register</Link>
-        </p>
       </div>
     </div>
-  </div>
-)
-
+  )
 }
 
 export default Login
