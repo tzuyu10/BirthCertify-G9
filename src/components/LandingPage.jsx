@@ -1,9 +1,11 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import "../styles/LandingPage.css";
+import Footer from "./Footer";
 
 const LandingPage = () => {
   return (
+    <>
     <div className="lSection">
       <img src="./colored-logo.png" alt="colored logo" className="lLogo" />
       <p className="lTagline">Revolutionizing Civil Requests —</p>
@@ -20,6 +22,8 @@ const LandingPage = () => {
         </Link>
       </div>
     </div>
+    <Footer />
+    </>
   );
 };
 
