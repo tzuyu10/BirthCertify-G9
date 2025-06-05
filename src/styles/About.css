@@ -1,0 +1,14 @@
+/* About.css */
+.about-container {
+  background-color: red;
+  padding: 20px;
+  margin-top: 120px;
+}
+
+.about-title {
+  color: white;
+}
+
+.about-text {
+  color: white;
+}

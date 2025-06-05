@@ -1,0 +1,20 @@
+/* Request.css */
+.request-container {
+  background-color: red;
+  padding: 20px;
+  margin-top: 120px; /* Adjust this value to change spacing */
+  min-height: 200px;
+}
+
+.request-title {
+  color: white;
+  margin: 0 0 15px 0;
+  font-size: 24px;
+}
+
+.request-text {
+  color: white;
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+}
