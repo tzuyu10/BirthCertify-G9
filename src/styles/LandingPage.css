@@ -1,5 +1,19 @@
+html,
 body {
-  overflow: hidden;
+  height: 100%;
+  width: 100%;
+  margin: 0; /* Add this */
+  padding: 0; /* Add this */
+}
+
+body {
+  background: none;
+  overflow: hidden; /* Optional */
+}
+
+* {
+  box-shadow: none;
+  border: none;
 }
 
 .lSection {
@@ -10,7 +24,8 @@ body {
   height: 100vh;
   text-align: center;
   padding: 2rem;
-  background-image: url('./landing-bg.png');
+  background-image: url("./landing-bg.png");
+
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

@@ -82,7 +82,7 @@ function AppRoutes() {
     <Routes>
       {/* Home route - redirects based on user role */}
       <Route
-        path="/home"
+        path="/"
         element={
           <ProtectedRoute>
             <AuthenticatedHome />

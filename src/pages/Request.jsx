@@ -1,16 +1,19 @@
 import React from "react";
 import Navbar from "../components/Navbar";
+import "../styles/Request.css"; // Import the CSS file
 
 const Request = () => {
   console.log("Request component is rendering!");
 
   return (
-    <div style={{ backgroundColor: "red", padding: "20px", marginTop: "50px" }}>
+    <div>
       <Navbar />
-      <h2 style={{ color: "white" }}>Request Page</h2>
-      <p style={{ color: "white" }}>
-        If you see this, the component is working!
-      </p>
+      <div className="request-container">
+        <h2 className="request-title">Request Page</h2>
+        <p className="request-text">
+          If you see this, the component is working!
+        </p>
+      </div>
     </div>
   );
 };

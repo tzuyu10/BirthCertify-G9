@@ -1,15 +1,14 @@
 import React from "react";
 import Navbar from "../components/Navbar";
 import "../styles/Navbar.css";
+import "../styles/About.css"; // Import the new CSS file
 
 const About = () => {
   return (
-    <div style={{ backgroundColor: "red", padding: "20px", marginTop: "50px" }}>
+    <div className="about-container">
       <Navbar />
-      <h2 style={{ color: "white" }}>About Page</h2>
-      <p style={{ color: "white" }}>
-        If you see this, the component is working!
-      </p>
+      <h2 className="about-title">About Page</h2>
+      <p className="about-text">If you see this, the component is working!</p>
     </div>
   );
 };
