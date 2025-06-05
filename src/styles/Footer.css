@@ -1,0 +1,78 @@
+.footer {
+  background-color: #3a3a3a;
+  color: white;
+  padding: 40px 60px;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 40px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.footer-section {
+  flex: 1;
+  min-width: 200px;
+}
+
+.logo-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.logo {
+  width: 70px;
+  margin-bottom: 10px;
+}
+
+.title {
+  font-weight: 700;
+  font-size: 28px;
+}
+
+.subtitle {
+  font-size: 14px;
+}
+
+.project-info {
+  font-size: 10px;
+  margin-top: 18px;
+}
+
+.about-section h2{
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+.about-section p {
+  font-size: 12px;
+  line-height: 1.5;
+  max-width: 300px;
+  text-justify: inter-word;
+}
+
+.contact-section {
+  text-align: center;
+}
+
+.contact-section h2 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.contact-section .icons {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.contact-section .icons img{
+  width: 20px;
+  height: 20px;
+  display: center;
+}
+
+.footer-bottom {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px
+}
