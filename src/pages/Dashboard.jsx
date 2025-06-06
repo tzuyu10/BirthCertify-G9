@@ -2,7 +2,7 @@ import React from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useUserRole } from "../hooks/useUserRole";
 import "../styles/Dashboard.css";
-import Navbar from "./Navbar";
+import Navbar from "../components/Navbar";
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();

@@ -8,11 +8,11 @@ import {
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleBasedRedirect from "./components/RoleBasedRedirect";
-import LandingPage from "./components/LandingPage";
-import SignUp from "./components/Signup";
-import Login from "./components/Login";
-import Dashboard from "./components/Dashboard";
-import AdminDashboard from "./components/AdminDashboard";
+import LandingPage from "./pages/LandingPage";
+import SignUp from "./pages/Signup";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import About from "./pages/About";
 import Request from "./pages/Request";
 import Unauthorized from "./components/Unauthorized";

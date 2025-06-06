@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import "../styles/LandingPage.css";
-import Footer from "./Footer";
+import Footer from "../components/Footer";
 
 const LandingPage = () => {
   return (
