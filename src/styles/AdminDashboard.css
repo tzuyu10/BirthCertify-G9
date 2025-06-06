@@ -5,6 +5,16 @@ body {
   padding: 0;
 }
 
+#root,
+.App,
+[data-reactroot] {
+  min-height: 100vh;
+  width: 100vw;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 .admin-dashboard {
   display: flex;
   width: 100%;
