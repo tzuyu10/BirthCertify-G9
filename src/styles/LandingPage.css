@@ -1,83 +1,592 @@
-html,
-body {
-  height: 100%;
-  width: 100%;
+/* Add this to your existing LandingPage.css file */
+
+/* Main container */
+.landing-container {
+  position: relative;
+  background: linear-gradient(135deg, #87CEEB 0%, #4A90E2 50%, #2E86AB 100%);
+  overflow-x: hidden;
 }
 
-body {
-  background: none;
+.lLogo {
+  width: 100px;
+  height: 100px;
+  margin-bottom: 1.5rem;
 }
 
+/* Update the main section to have proper layout */
 .lSection {
+  position: relative;
+  z-index: 10;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  color: white;
+}
+
+/* Main content wrapper - takes full viewport */
+.main-content {
+  margin-top: 40vh;
+  height: 150vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh;
   text-align: center;
   padding: 2rem;
-  background-image: url("./landing-bg.png");
-
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
 }
 
-.lLogo {
+/* Footer wrapper - positioned below viewport */
+.footer-wrapper {
+  position: relative;
+  z-index: 10;
+  margin-top: 0;
+}
+
+/* Animated background elements */
+.bg-animation {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 1;
+  top: 0;
+  left: 0;
+}
+
+.floating-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2), 
+              inset 0 0 20px rgba(255, 255, 255, 0.1);
+  animation: float 6s ease-in-out infinite;
+}
+
+.floating-circle:nth-child(1) {
+  width: 120px;
+  height: 120px;
+  top: 10%;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.floating-circle:nth-child(2) {
+  width: 80px;
+  height: 80px;
+  top: 20%;
+  right: 15%;
+  animation-delay: 2s;
+  animation-duration: 8s;
+}
+
+.floating-circle:nth-child(3) {
+  width: 60px;
+  height: 60px;
+  bottom: 20%;
+  left: 20%;
+  animation-delay: 4s;
+  animation-duration: 7s;
+}
+
+.floating-circle:nth-child(4) {
+  width: 100px;
+  height: 100px;
+  bottom: 15%;
+  right: 10%;
+  animation-delay: 1s;
+  animation-duration: 9s;
+}
+
+.floating-circle:nth-child(5) {
+  width: 40px;
+  height: 40px;
+  top: 50%;
+  left: 5%;
+  animation-delay: 3s;
+  animation-duration: 5s;
+}
+
+.floating-circle:nth-child(6) {
   width: 70px;
   height: 70px;
-  margin-bottom: 1.5rem;
+  top: 60%;
+  right: 30%;
+  animation-delay: 5s;
+  animation-duration: 6s;
 }
+
+/* Additional circle positions for new shade variations */
+.floating-circle:nth-child(7) {
+  width: 90px;
+  height: 90px;
+  top: 35%;
+  left: 80%;
+  animation-delay: 1.5s;
+  animation-duration: 7.5s;
+}
+
+.floating-circle:nth-child(8) {
+  width: 50px;
+  height: 50px;
+  top: 75%;
+  left: 35%;
+  animation-delay: 3.5s;
+  animation-duration: 6.5s;
+}
+
+.floating-circle:nth-child(9) {
+  width: 110px;
+  height: 110px;
+  top: 5%;
+  right: 40%;
+  animation-delay: 2.5s;
+  animation-duration: 8.5s;
+}
+
+.floating-circle:nth-child(10) {
+  width: 35px;
+  height: 35px;
+  bottom: 35%;
+  left: 60%;
+  animation-delay: 4.5s;
+  animation-duration: 5.5s;
+}
+
+.floating-circle:nth-child(11) {
+  width: 75px;
+  height: 75px;
+  top: 85%;
+  right: 5%;
+  animation-delay: 6s;
+  animation-duration: 7s;
+}
+
+.floating-circle:nth-child(12) {
+  width: 45px;
+  height: 45px;
+  top: 45%;
+  right: 70%;
+  animation-delay: 0.5s;
+  animation-duration: 9.5s;
+}
+
+.floating-circle:nth-child(13) {
+  width: 85px;
+  height: 85px;
+  bottom: 5%;
+  left: 45%;
+  animation-delay: 3s;
+  animation-duration: 6s;
+}
+
+.floating-circle:nth-child(14) {
+  width: 55px;
+  height: 55px;
+  top: 25%;
+  left: 75%;
+  animation-delay: 5.5s;
+  animation-duration: 8s;
+}
+
+/* Shade variations for circles */
+.floating-circle.shade-light {
+  background: rgba(255, 255, 255, 0.35);
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.3), 
+              inset 0 0 25px rgba(255, 255, 255, 0.15);
+}
+
+.floating-circle.shade-medium {
+  background: rgba(248, 248, 255, 0.3);
+  border: 2px solid rgba(248, 248, 255, 0.4);
+  box-shadow: 0 0 20px rgba(248, 248, 255, 0.25), 
+              inset 0 0 20px rgba(248, 248, 255, 0.12);
+}
+
+.floating-circle.shade-soft {
+  background: rgba(245, 245, 245, 0.28);
+  border: 2px solid rgba(245, 245, 245, 0.38);
+  box-shadow: 0 0 18px rgba(245, 245, 245, 0.22), 
+              inset 0 0 18px rgba(245, 245, 245, 0.1);
+}
+
+.floating-circle.shade-pearl {
+  background: rgba(255, 250, 250, 0.32);
+  border: 2px solid rgba(255, 250, 250, 0.42);
+  box-shadow: 0 0 22px rgba(255, 250, 250, 0.27), 
+              inset 0 0 22px rgba(255, 250, 250, 0.13);
+}
+
+.floating-circle.shade-mist {
+  background: rgba(240, 248, 255, 0.26);
+  border: 2px solid rgba(240, 248, 255, 0.36);
+  box-shadow: 0 0 16px rgba(240, 248, 255, 0.2), 
+              inset 0 0 16px rgba(240, 248, 255, 0.08);
+}
+
+.floating-circle.shade-frost {
+  background: rgba(255, 255, 240, 0.3);
+  border: 2px solid rgba(255, 255, 240, 0.4);
+  box-shadow: 0 0 20px rgba(255, 255, 240, 0.24), 
+              inset 0 0 20px rgba(255, 255, 240, 0.11);
+}
+
+.floating-circle.shade-snow {
+  background: rgba(255, 250, 250, 0.4);
+  border: 2px solid rgba(255, 250, 250, 0.5);
+  box-shadow: 0 0 28px rgba(255, 250, 250, 0.35), 
+              inset 0 0 28px rgba(255, 250, 250, 0.18);
+}
+
+.floating-circle.shade-cream {
+  background: rgba(255, 253, 240, 0.33);
+  border: 2px solid rgba(255, 253, 240, 0.43);
+  box-shadow: 0 0 24px rgba(255, 253, 240, 0.28), 
+              inset 0 0 24px rgba(255, 253, 240, 0.14);
+}
+
+/* Floating documents animation */
+.floating-doc {
+  position: absolute;
+  width: 60px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2),
+              0 0 30px rgba(135, 206, 235, 0.3);
+  animation: floatDoc 12s linear infinite;
+}
+
+.floating-doc::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 2px;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+}
+
+.floating-doc::after {
+  content: '';
+  position: absolute;
+  top: 20px;
+  left: 10px;
+  right: 15px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 1px;
+  box-shadow: 0 0 3px rgba(255, 255, 255, 0.2);
+}
+
+.floating-doc:nth-child(15) {
+  top: -100px;
+  left: 25%;
+  animation-delay: 0s;
+}
+
+.floating-doc:nth-child(16) {
+  top: -100px;
+  right: 25%;
+  animation-delay: 6s;
+}
+
+/* Additional document positions */
+.floating-doc:nth-child(17) {
+  top: -100px;
+  left: 45%;
+  animation-delay: 3s;
+  animation-duration: 14s;
+}
+
+.floating-doc:nth-child(18) {
+  top: -100px;
+  right: 45%;
+  animation-delay: 9s;
+  animation-duration: 16s;
+}
+
+.floating-doc:nth-child(19) {
+  top: -100px;
+  left: 10%;
+  animation-delay: 12s;
+  animation-duration: 13s;
+}
+
+.floating-doc:nth-child(20) {
+  top: -100px;
+  right: 10%;
+  animation-delay: 15s;
+  animation-duration: 11s;
+}
+
+.floating-doc:nth-child(21) {
+  top: -100px;
+  left: 60%;
+  animation-delay: 18s;
+  animation-duration: 15s;
+}
+
+.floating-doc:nth-child(22) {
+  top: -100px;
+  right: 60%;
+  animation-delay: 21s;
+  animation-duration: 10s;
+}
+
+/* Shade variations for documents */
+.floating-doc.shade-light {
+  background: rgba(255, 255, 255, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 18px rgba(255, 255, 255, 0.25),
+              0 0 35px rgba(135, 206, 235, 0.35);
+}
+
+.floating-doc.shade-medium {
+  background: rgba(248, 248, 255, 0.35);
+  border: 2px solid rgba(248, 248, 255, 0.45);
+  box-shadow: 0 4px 16px rgba(248, 248, 255, 0.22),
+              0 0 32px rgba(135, 206, 235, 0.32);
+}
+
+.floating-doc.shade-soft {
+  background: rgba(245, 245, 245, 0.32);
+  border: 2px solid rgba(245, 245, 245, 0.42);
+  box-shadow: 0 4px 14px rgba(245, 245, 245, 0.2),
+              0 0 28px rgba(135, 206, 235, 0.28);
+}
+
+.floating-doc.shade-pearl {
+  background: rgba(255, 250, 250, 0.38);
+  border: 2px solid rgba(255, 250, 250, 0.48);
+  box-shadow: 0 4px 17px rgba(255, 250, 250, 0.24),
+              0 0 33px rgba(135, 206, 235, 0.33);
+}
+
+.floating-doc.shade-mist {
+  background: rgba(240, 248, 255, 0.28);
+  border: 2px solid rgba(240, 248, 255, 0.38);
+  box-shadow: 0 4px 12px rgba(240, 248, 255, 0.18),
+              0 0 26px rgba(135, 206, 235, 0.26);
+}
+
+.floating-doc.shade-frost {
+  background: rgba(255, 255, 240, 0.34);
+  border: 2px solid rgba(255, 255, 240, 0.44);
+  box-shadow: 0 4px 15px rgba(255, 255, 240, 0.21),
+              0 0 30px rgba(135, 206, 235, 0.3);
+}
+
+/* Particle system */
+.particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.6),
+              0 0 20px rgba(135, 206, 235, 0.4);
+  animation: particle 15s linear infinite;
+}
+
+.particle:nth-child(23) { left: 10%; animation-delay: 0s; }
+.particle:nth-child(24) { left: 20%; animation-delay: 3s; }
+.particle:nth-child(25) { left: 30%; animation-delay: 6s; }
+.particle:nth-child(26) { left: 40%; animation-delay: 9s; }
+.particle:nth-child(27) { left: 50%; animation-delay: 12s; }
+.particle:nth-child(28) { left: 60%; animation-delay: 2s; }
+.particle:nth-child(29) { left: 70%; animation-delay: 5s; }
+.particle:nth-child(30) { left: 80%; animation-delay: 8s; }
+
+/* Additional particles with different positions */
+.particle:nth-child(31) { left: 15%; animation-delay: 1s; animation-duration: 18s; }
+.particle:nth-child(32) { left: 25%; animation-delay: 4s; animation-duration: 12s; }
+.particle:nth-child(33) { left: 35%; animation-delay: 7s; animation-duration: 20s; }
+.particle:nth-child(34) { left: 45%; animation-delay: 10s; animation-duration: 14s; }
+.particle:nth-child(35) { left: 55%; animation-delay: 13s; animation-duration: 16s; }
+.particle:nth-child(36) { left: 65%; animation-delay: 1.5s; animation-duration: 17s; }
+.particle:nth-child(37) { left: 75%; animation-delay: 4.5s; animation-duration: 13s; }
+.particle:nth-child(38) { left: 85%; animation-delay: 7.5s; animation-duration: 19s; }
+
+/* Shade variations for particles */
+.particle.shade-light {
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.7),
+              0 0 24px rgba(135, 206, 235, 0.45);
+}
+
+.particle.shade-medium {
+  background: rgba(248, 248, 255, 0.85);
+  box-shadow: 0 0 11px rgba(248, 248, 255, 0.65),
+              0 0 22px rgba(135, 206, 235, 0.42);
+}
+
+.particle.shade-soft {
+  background: rgba(245, 245, 245, 0.75);
+  box-shadow: 0 0 9px rgba(245, 245, 245, 0.55),
+              0 0 18px rgba(135, 206, 235, 0.38);
+}
+
+.particle.shade-pearl {
+  background: rgba(255, 250, 250, 0.88);
+  box-shadow: 0 0 11px rgba(255, 250, 250, 0.68),
+              0 0 23px rgba(135, 206, 235, 0.43);
+}
+
+.particle.shade-mist {
+  background: rgba(240, 248, 255, 0.7);
+  box-shadow: 0 0 8px rgba(240, 248, 255, 0.5),
+              0 0 16px rgba(135, 206, 235, 0.35);
+}
+
+.particle.shade-frost {
+  background: rgba(255, 255, 240, 0.82);
+  box-shadow: 0 0 10px rgba(255, 255, 240, 0.62),
+              0 0 20px rgba(135, 206, 235, 0.4);
+}
+
+.particle.shade-snow {
+  background: rgba(255, 250, 250, 0.95);
+  box-shadow: 0 0 14px rgba(255, 250, 250, 0.75),
+              0 0 28px rgba(135, 206, 235, 0.5);
+}
+
+.particle.shade-cream {
+  background: rgba(255, 253, 240, 0.87);
+  box-shadow: 0 0 11px rgba(255, 253, 240, 0.67),
+              0 0 22px rgba(135, 206, 235, 0.42);
+}
+
+/* Enhanced styling for existing elements */
+.lLogo {
+  position: relative;
+  z-index: 10;
+  animation: pulse 3s ease-in-out infinite;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
 .lTagline {
-  font-size: 2.2rem;
-  color: #222;
-  margin-bottom: 0.5rem;
-  text-align: center;
+  position: relative;
+  z-index: 10;
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+  font-weight: 300;
+  letter-spacing: -0.5px;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .lSection h1 {
-  font-size: 3.8rem;
-  font-weight: 600;
-  color: #000;
+  position: relative;
+  z-index: 10;
+  font-size: 3.5rem;
+  font-weight: 300;
+  margin-bottom: 40px;
+  color: white;
 }
 
 .lBold {
-  color: #007bd6;
   font-weight: 700;
+  background: linear-gradient(45deg, #ffffff, #87CEEB);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .lButtons {
-  margin-top: 2rem;
+  position: relative;
+  z-index: 10;
   display: flex;
-  gap: 1rem;
-  justify-content: center;
+  gap: 20px;
+  margin-top: 20px;
 }
 
 .btn {
-  padding: 0.8rem 2rem;
-  font-size: 1rem;
+  padding: 12px 30px;
   border-radius: 25px;
-  font-weight: 500;
+  border: 2px solid transparent;
+  font-weight: 600;
+  transition: all 0.3s ease;
   cursor: pointer;
-  transition: 0.3s ease;
+  text-decoration: none;
 }
 
-.btn.Login {
-  background-color: #007bd6;
+.Login {
+  background: transparent;
   color: white;
-  border: none;
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
-.btn.Signup {
-  background: white;
-  color: #007bd6;
-  border: 1px solid #007bd6;
+.Login:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: white;
+  transform: translateY(-2px);
 }
 
-.btn.Login:hover {
-  background-color: #005fa3;
+.Signup {
+  background: transparent;
+  color: white;
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
-.btn.Signup:hover {
-  background-color: #e3f4ff;
+.Signup:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: white;
+  transform: translateY(-2px);
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(180deg); }
+}
+
+@keyframes floatDoc {
+  0% { transform: translateY(0px) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(calc(100vh + 100px)) rotate(360deg); opacity: 0; }
+}
+
+@keyframes particle {
+  0% { transform: translateY(100vh) scale(0); opacity: 0; }
+  10% { opacity: 1; transform: scale(1); }
+  90% { opacity: 1; }
+  100% { transform: translateY(-100px) scale(0); opacity: 0; }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .lSection h1 {
+    font-size: 2.5rem;
+  }
+  
+  .lTagline {
+    font-size: 1.2rem;
+  }
+  
+  .lButtons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .floating-circle {
+    opacity: 0.7;
+  }
+  
+  .floating-doc {
+    opacity: 0.8;
+  }
+  
+  .particle {
+    opacity: 0.9;
+  }
 }
