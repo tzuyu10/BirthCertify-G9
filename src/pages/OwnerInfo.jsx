@@ -3,6 +3,11 @@ import React from 'react'
 import '../styles/OwnerInfo.css'
 
 function OwnerPage() {
+  const handleSubmit = () => {
+    // Add your submit logic here
+    console.log('Form submitted');
+  }
+
   return (
     <div className="owner-page-container">
       <div className="owner-header">
@@ -42,7 +47,7 @@ function OwnerPage() {
           </div>
           <div className="owner-input-box owner-full">
             <label>Place of Birth</label>
-            <input type="text" id="O_Place_of_Birth" placeholder="Hospital" required />
+            <input type="text" id="O_Place_of_Birth" placeholder="Place of Birth" required />
           </div>
           <div className="owner-input-box">
             <label>Nationality</label>
@@ -124,6 +129,16 @@ function OwnerPage() {
             <label>Nationality</label>
             <input type="text" id="m_nationality" defaultValue="Filipino" />
           </div>
+        </div>
+
+        <div className="owner-button-container">
+          <button 
+            className="owner-submit-btn" 
+            onClick={handleSubmit}
+            type="button"
+          >
+            Submit Information
+          </button>
         </div>
       </div>
     </div>
