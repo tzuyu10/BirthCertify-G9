@@ -16,6 +16,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import About from "./pages/About";
 import Request from "./pages/Request";
 import Unauthorized from "./components/Unauthorized";
+import Owner from "./pages/OwnerInfo";
 
 // Loading component
 const LoadingSpinner = () => (
@@ -115,6 +116,15 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Request />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/owner"
+        element={
+          <ProtectedRoute>
+            <Owner />
           </ProtectedRoute>
         }
       />

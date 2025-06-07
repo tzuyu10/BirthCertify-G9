@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import '../styles/Request.css'
 import Navbar from '../components/Navbar'
+import { Link } from "react-router-dom";
 
 function RequestPage() {
   const [formData, setFormData] = useState({
@@ -12,6 +13,24 @@ function RequestPage() {
   });
 
   const [showOtherPurpose, setShowOtherPurpose] = useState(false);
+
+  // Function to check if all required fields are filled
+  const isFormValid = () => {
+    const { Fname, Lname, contact, purpose, specify } = formData;
+    
+    // Check basic required fields
+    const basicFieldsFilled = Fname.trim() !== '' && 
+                             Lname.trim() !== '' && 
+                             contact.trim() !== '' && 
+                             purpose !== '';
+    
+    // If "Other" is selected, also check if specify field is filled
+    if (showOtherPurpose) {
+      return basicFieldsFilled && specify.trim() !== '';
+    }
+    
+    return basicFieldsFilled;
+  };
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
@@ -34,8 +53,10 @@ function RequestPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    // Add your form submission logic here
+    if (isFormValid()) {
+      console.log('Form submitted:', formData);
+      // Add your form submission logic here
+    }
   };
 
   return (
@@ -120,8 +141,20 @@ function RequestPage() {
                 </div>
               )}
             </div>
-
-            <button type="submit" className="request-btn">Submit Request</button>
+            
+            <Link to="/owner">
+              <button 
+                type="submit" 
+                className="request-btn"
+                disabled={!isFormValid()}
+                style={{
+                  opacity: isFormValid() ? 1 : 0.5,
+                  cursor: isFormValid() ? 'pointer' : 'not-allowed'
+                }}
+              >
+                Submit Request
+              </button>
+            </Link>
           </form>
         </div>
       </div>
