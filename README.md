@@ -2,6 +2,8 @@
 
 Revolutionizing Civil Requests - One Click at a Time. 
 
+Birth Certify is an online request platform for birth certificates, adapted from a PSA (Philippine Statistics Authority) reqeust manual form and developed as a Civil Request Management System in fulfillment for COMP 010 – Information Management as a final project.
+
 # Members
 - CANSINO, Florence Lee F.
 - FAELDONIA, Elias Von Isaac R.
@@ -24,5 +26,3 @@ npm install react-router-dom
 ``` terminal
 npm install recharts
 ```
-
-Birth Certify is an online request platform for birth certificates, adapted from a PSA (Philippine Statistics Authority) reqeust manual form and developed as a Civil Request Management System in fulfillment for COMP 010 – Information Management as a final project.
