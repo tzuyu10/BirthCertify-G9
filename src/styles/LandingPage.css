@@ -1,5 +1,3 @@
-/* Add this to your existing LandingPage.css file */
-
 /* Main container */
 .landing-container {
   position: relative;
@@ -16,7 +14,7 @@
 /* Update the main section to have proper layout */
 .lSection {
   position: relative;
-  z-index: 10;
+  z-index: 100; /* Much higher z-index to ensure it's always on top */
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -25,7 +23,6 @@
 
 /* Main content wrapper - takes full viewport */
 .main-content {
-  margin-top: 40vh;
   height: 150vh;
   display: flex;
   flex-direction: column;
@@ -33,26 +30,31 @@
   justify-content: center;
   text-align: center;
   padding: 2rem;
+  margin-top: -190px;
+  position: relative;
+  z-index: 100; /* Ensure main content is always on top */
 }
 
 /* Footer wrapper - positioned below viewport */
 .footer-wrapper {
   position: relative;
-  z-index: 10;
+  z-index: 100; /* Higher than background elements */
   margin-top: 0;
 }
 
-/* Animated background elements */
+/* Animated background elements - kept behind content */
 .bg-animation {
   position: absolute;
   width: 100%;
   height: 100%;
   overflow: hidden;
-  z-index: 1;
+  z-index: 1; /* Much lower than content */
   top: 0;
   left: 0;
+  pointer-events: none; /* Prevent interaction with background elements */
 }
 
+/* Create exclusion zones around main content */
 .floating-circle {
   position: absolute;
   border-radius: 50%;
@@ -61,21 +63,23 @@
   box-shadow: 0 0 20px rgba(255, 255, 255, 0.2), 
               inset 0 0 20px rgba(255, 255, 255, 0.1);
   animation: float 6s ease-in-out infinite;
+  pointer-events: none; /* Prevent interaction */
 }
 
+/* Repositioned circles to avoid center content area (30% to 70% width, 25% to 75% height) */
 .floating-circle:nth-child(1) {
   width: 120px;
   height: 120px;
-  top: 10%;
-  left: 10%;
+  top: 5%;
+  left: 5%;
   animation-delay: 0s;
 }
 
 .floating-circle:nth-child(2) {
   width: 80px;
   height: 80px;
-  top: 20%;
-  right: 15%;
+  top: 10%;
+  right: 5%;
   animation-delay: 2s;
   animation-duration: 8s;
 }
@@ -83,8 +87,8 @@
 .floating-circle:nth-child(3) {
   width: 60px;
   height: 60px;
-  bottom: 20%;
-  left: 20%;
+  bottom: 10%;
+  left: 10%;
   animation-delay: 4s;
   animation-duration: 7s;
 }
@@ -92,8 +96,8 @@
 .floating-circle:nth-child(4) {
   width: 100px;
   height: 100px;
-  bottom: 15%;
-  right: 10%;
+  bottom: 5%;
+  right: 8%;
   animation-delay: 1s;
   animation-duration: 9s;
 }
@@ -101,8 +105,8 @@
 .floating-circle:nth-child(5) {
   width: 40px;
   height: 40px;
-  top: 50%;
-  left: 5%;
+  top: 80%;
+  left: 2%;
   animation-delay: 3s;
   animation-duration: 5s;
 }
@@ -110,18 +114,18 @@
 .floating-circle:nth-child(6) {
   width: 70px;
   height: 70px;
-  top: 60%;
-  right: 30%;
+  top: 85%;
+  right: 15%;
   animation-delay: 5s;
   animation-duration: 6s;
 }
 
-/* Additional circle positions for new shade variations */
+/* Additional circles positioned away from center */
 .floating-circle:nth-child(7) {
   width: 90px;
   height: 90px;
-  top: 35%;
-  left: 80%;
+  top: 15%;
+  right: 20%;
   animation-delay: 1.5s;
   animation-duration: 7.5s;
 }
@@ -129,8 +133,8 @@
 .floating-circle:nth-child(8) {
   width: 50px;
   height: 50px;
-  top: 75%;
-  left: 35%;
+  bottom: 25%;
+  left: 5%;
   animation-delay: 3.5s;
   animation-duration: 6.5s;
 }
@@ -138,8 +142,8 @@
 .floating-circle:nth-child(9) {
   width: 110px;
   height: 110px;
-  top: 5%;
-  right: 40%;
+  top: 2%;
+  left: 25%;
   animation-delay: 2.5s;
   animation-duration: 8.5s;
 }
@@ -147,8 +151,8 @@
 .floating-circle:nth-child(10) {
   width: 35px;
   height: 35px;
-  bottom: 35%;
-  left: 60%;
+  bottom: 30%;
+  right: 5%;
   animation-delay: 4.5s;
   animation-duration: 5.5s;
 }
@@ -156,8 +160,8 @@
 .floating-circle:nth-child(11) {
   width: 75px;
   height: 75px;
-  top: 85%;
-  right: 5%;
+  bottom: 2%;
+  left: 30%;
   animation-delay: 6s;
   animation-duration: 7s;
 }
@@ -165,8 +169,8 @@
 .floating-circle:nth-child(12) {
   width: 45px;
   height: 45px;
-  top: 45%;
-  right: 70%;
+  top: 20%;
+  left: 15%;
   animation-delay: 0.5s;
   animation-duration: 9.5s;
 }
@@ -174,8 +178,8 @@
 .floating-circle:nth-child(13) {
   width: 85px;
   height: 85px;
-  bottom: 5%;
-  left: 45%;
+  bottom: 15%;
+  right: 25%;
   animation-delay: 3s;
   animation-duration: 6s;
 }
@@ -183,8 +187,8 @@
 .floating-circle:nth-child(14) {
   width: 55px;
   height: 55px;
-  top: 25%;
-  left: 75%;
+  top: 8%;
+  right: 35%;
   animation-delay: 5.5s;
   animation-duration: 8s;
 }
@@ -246,7 +250,7 @@
               inset 0 0 24px rgba(255, 253, 240, 0.14);
 }
 
-/* Floating documents animation */
+/* Floating documents animation - positioned to avoid center */
 .floating-doc {
   position: absolute;
   width: 60px;
@@ -257,6 +261,7 @@
   box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2),
               0 0 30px rgba(135, 206, 235, 0.3);
   animation: floatDoc 12s linear infinite;
+  pointer-events: none; /* Prevent interaction */
 }
 
 .floating-doc::before {
@@ -283,57 +288,57 @@
   box-shadow: 0 0 3px rgba(255, 255, 255, 0.2);
 }
 
+/* Repositioned documents to avoid center content area */
 .floating-doc:nth-child(15) {
   top: -100px;
-  left: 25%;
+  left: 15%;
   animation-delay: 0s;
 }
 
 .floating-doc:nth-child(16) {
   top: -100px;
-  right: 25%;
+  right: 15%;
   animation-delay: 6s;
 }
 
-/* Additional document positions */
 .floating-doc:nth-child(17) {
   top: -100px;
-  left: 45%;
+  left: 5%;
   animation-delay: 3s;
   animation-duration: 14s;
 }
 
 .floating-doc:nth-child(18) {
   top: -100px;
-  right: 45%;
+  right: 5%;
   animation-delay: 9s;
   animation-duration: 16s;
 }
 
 .floating-doc:nth-child(19) {
   top: -100px;
-  left: 10%;
+  left: 2%;
   animation-delay: 12s;
   animation-duration: 13s;
 }
 
 .floating-doc:nth-child(20) {
   top: -100px;
-  right: 10%;
+  right: 2%;
   animation-delay: 15s;
   animation-duration: 11s;
 }
 
 .floating-doc:nth-child(21) {
   top: -100px;
-  left: 60%;
+  left: 25%;
   animation-delay: 18s;
   animation-duration: 15s;
 }
 
 .floating-doc:nth-child(22) {
   top: -100px;
-  right: 60%;
+  right: 25%;
   animation-delay: 21s;
   animation-duration: 10s;
 }
@@ -381,7 +386,7 @@
               0 0 30px rgba(135, 206, 235, 0.3);
 }
 
-/* Particle system */
+/* Particle system - positioned to avoid center content */
 .particle {
   position: absolute;
   width: 6px;
@@ -391,26 +396,28 @@
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.6),
               0 0 20px rgba(135, 206, 235, 0.4);
   animation: particle 15s linear infinite;
+  pointer-events: none; /* Prevent interaction */
 }
 
-.particle:nth-child(23) { left: 10%; animation-delay: 0s; }
-.particle:nth-child(24) { left: 20%; animation-delay: 3s; }
-.particle:nth-child(25) { left: 30%; animation-delay: 6s; }
-.particle:nth-child(26) { left: 40%; animation-delay: 9s; }
-.particle:nth-child(27) { left: 50%; animation-delay: 12s; }
-.particle:nth-child(28) { left: 60%; animation-delay: 2s; }
-.particle:nth-child(29) { left: 70%; animation-delay: 5s; }
-.particle:nth-child(30) { left: 80%; animation-delay: 8s; }
+/* Repositioned particles to flow around edges */
+.particle:nth-child(23) { left: 5%; animation-delay: 0s; }
+.particle:nth-child(24) { left: 10%; animation-delay: 3s; }
+.particle:nth-child(25) { left: 20%; animation-delay: 6s; }
+.particle:nth-child(26) { left: 80%; animation-delay: 9s; }
+.particle:nth-child(27) { left: 85%; animation-delay: 12s; }
+.particle:nth-child(28) { left: 90%; animation-delay: 2s; }
+.particle:nth-child(29) { left: 15%; animation-delay: 5s; }
+.particle:nth-child(30) { left: 95%; animation-delay: 8s; }
 
-/* Additional particles with different positions */
-.particle:nth-child(31) { left: 15%; animation-delay: 1s; animation-duration: 18s; }
-.particle:nth-child(32) { left: 25%; animation-delay: 4s; animation-duration: 12s; }
-.particle:nth-child(33) { left: 35%; animation-delay: 7s; animation-duration: 20s; }
-.particle:nth-child(34) { left: 45%; animation-delay: 10s; animation-duration: 14s; }
-.particle:nth-child(35) { left: 55%; animation-delay: 13s; animation-duration: 16s; }
-.particle:nth-child(36) { left: 65%; animation-delay: 1.5s; animation-duration: 17s; }
-.particle:nth-child(37) { left: 75%; animation-delay: 4.5s; animation-duration: 13s; }
-.particle:nth-child(38) { left: 85%; animation-delay: 7.5s; animation-duration: 19s; }
+/* Additional particles with edge positioning */
+.particle:nth-child(31) { left: 8%; animation-delay: 1s; animation-duration: 18s; }
+.particle:nth-child(32) { left: 12%; animation-delay: 4s; animation-duration: 12s; }
+.particle:nth-child(33) { left: 25%; animation-delay: 7s; animation-duration: 20s; }
+.particle:nth-child(34) { left: 75%; animation-delay: 10s; animation-duration: 14s; }
+.particle:nth-child(35) { left: 82%; animation-delay: 13s; animation-duration: 16s; }
+.particle:nth-child(36) { left: 88%; animation-delay: 1.5s; animation-duration: 17s; }
+.particle:nth-child(37) { left: 18%; animation-delay: 4.5s; animation-duration: 13s; }
+.particle:nth-child(38) { left: 92%; animation-delay: 7.5s; animation-duration: 19s; }
 
 /* Shade variations for particles */
 .particle.shade-light {
@@ -464,28 +471,30 @@
 /* Enhanced styling for existing elements */
 .lLogo {
   position: relative;
-  z-index: 10;
+  z-index: 100;
   animation: pulse 3s ease-in-out infinite;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
 }
 
 .lTagline {
   position: relative;
-  z-index: 10;
+  z-index: 100;
   font-size: 1.5rem;
   margin-bottom: 10px;
   font-weight: 300;
   letter-spacing: -0.5px;
   color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Add text shadow for better readability */
 }
 
 .lSection h1 {
   position: relative;
-  z-index: 10;
+  z-index: 100;
   font-size: 3.5rem;
   font-weight: 300;
   margin-bottom: 40px;
   color: white;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* Add text shadow for better readability */
 }
 
 .lBold {
@@ -494,11 +503,12 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  text-shadow: none; /* Remove text shadow from gradient text */
 }
 
 .lButtons {
   position: relative;
-  z-index: 10;
+  z-index: 100;
   display: flex;
   gap: 20px;
   margin-top: 20px;
@@ -512,6 +522,8 @@
   transition: all 0.3s ease;
   cursor: pointer;
   text-decoration: none;
+  position: relative;
+  z-index: 100;
 }
 
 .Login {
@@ -563,6 +575,17 @@
   50% { transform: scale(1.05); }
 }
 
+/* Content protection zone - invisible barrier to keep animations away from text */
+.content-protection {
+  position: absolute;
+  top: 25%;
+  left: 30%;
+  width: 40%;
+  height: 50%;
+  z-index: 50;
+  pointer-events: none;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .lSection h1 {
@@ -578,15 +601,23 @@
     align-items: center;
   }
   
+  /* Reduce animation density on mobile for better performance */
   .floating-circle {
-    opacity: 0.7;
+    opacity: 0.5;
   }
   
   .floating-doc {
-    opacity: 0.8;
+    opacity: 0.6;
   }
   
   .particle {
-    opacity: 0.9;
+    opacity: 0.7;
+  }
+  
+  /* Hide some elements on mobile to reduce clutter */
+  .floating-circle:nth-child(n+8),
+  .floating-doc:nth-child(n+18),
+  .particle:nth-child(n+30) {
+    display: none;
   }
 }
