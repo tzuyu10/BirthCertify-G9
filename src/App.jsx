@@ -6,6 +6,8 @@ import {
   Navigate,
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { RequestProvider } from "./contexts/RequestContext"; // ✅ Add this import
+import { OwnerProvider } from "./contexts/OwnerContext"; // ✅ Import this
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleBasedRedirect from "./components/RoleBasedRedirect";
 import LandingPage from "./pages/LandingPage";
@@ -18,7 +20,6 @@ import Request from "./pages/Request";
 import Unauthorized from "./components/Unauthorized";
 import Owner from "./pages/OwnerInfo";
 
-// Loading component
 const LoadingSpinner = () => (
   <div
     style={{
@@ -51,21 +52,13 @@ const LoadingSpinner = () => (
   </div>
 );
 
-// Component to handle initial routing after login
-const AuthenticatedHome = () => {
-  return <RoleBasedRedirect />;
-};
+const AuthenticatedHome = () => <RoleBasedRedirect />;
 
-// Main routing component that handles authentication state
 function AppRoutes() {
   const { user, loading } = useAuth();
 
-  // Show loading spinner while authentication is being determined
-  if (loading) {
-    return <LoadingSpinner />;
-  }
+  if (loading) return <LoadingSpinner />;
 
-  // If user is not authenticated, show login page
   if (!user) {
     return (
       <Routes>
@@ -78,10 +71,8 @@ function AppRoutes() {
     );
   }
 
-  // If user is authenticated, show protected routes
   return (
     <Routes>
-      {/* Home route - redirects based on user role */}
       <Route
         path="/"
         element={
@@ -90,8 +81,6 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-
-      {/* Admin routes */}
       <Route
         path="/admin/dashboard"
         element={
@@ -100,8 +89,6 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-
-      {/* User routes */}
       <Route
         path="/dashboard"
         element={
@@ -110,7 +97,6 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/request"
         element={
@@ -119,7 +105,6 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/owner"
         element={
@@ -128,7 +113,6 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/help"
         element={
@@ -137,11 +121,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-
-      {/* Public routes accessible to authenticated users */}
       <Route path="/unauthorized" element={<Unauthorized />} />
-
-      {/* Catch all - redirect to home */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
@@ -150,11 +130,16 @@ function AppRoutes() {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <AppRoutes />
-      </Router>
+      <RequestProvider>
+        <OwnerProvider> {/* ✅ Wrap with OwnerProvider */}
+          <Router>
+            <AppRoutes />
+          </Router>
+        </OwnerProvider>
+      </RequestProvider>
     </AuthProvider>
   );
 }
+
 
 export default App;
