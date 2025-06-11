@@ -71,6 +71,43 @@ h2,
   flex-direction: column;
 }
 
+.owner-input-box-date {
+  display: flex;
+  flex-direction: column;
+}
+
+.owner-input-box-date label {
+  font-size: 16px;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.owner-input-box-date input,
+.owner-input-box-date select {
+  font-size: 16px;
+  padding: 10px 15px;
+  border: 1px solid #999;
+  border-radius: 8px;
+  background: white;
+  color: black;
+}
+
+.owner-input-box-date input[type="date"]::-webkit-calendar-picker-indicator {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='black'%3e%3cpath fill-rule='evenodd' d='M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z' clip-rule='evenodd'/%3e%3c/svg%3e");
+  cursor: pointer;
+}
+
+/* Optional: Additional date input styling */
+.owner-input-box-date input[type="date"] {
+  position: relative;
+}
+
+/* For better cross-browser compatibility */
+.owner-input-box-date input[type="date"]::-webkit-inner-spin-button,
+.owner-input-box-date input[type="date"]::-webkit-clear-button {
+  display: none;
+}
+
 .owner-input-box label {
   font-size: 16px;
   margin-bottom: 5px;
@@ -109,6 +146,28 @@ h2,
 
 .owner-submit-btn:hover {
   background-color: #0056b3;
+}
+
+.owner-input-box-sex {
+  display: flex;
+  flex-direction: column;
+}
+
+.owner-input-box-sex label {
+  font-size: 16px;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.owner-input-box-sex input,
+.owner-input-box-sex select {
+  font-size: 16px;
+  padding: 10px 15px;
+  border: 1px solid #999;
+  border-radius: 8px;
+  background: white;
+  color: black;
+  cursor: pointer;
 }
 
 /* Media queries for responsive design */

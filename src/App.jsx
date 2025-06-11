@@ -13,7 +13,7 @@ import SignUp from "./pages/Signup";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
-import About from "./pages/About";
+import Help from "./pages/Help";
 import Request from "./pages/Request";
 import Unauthorized from "./components/Unauthorized";
 import Owner from "./pages/OwnerInfo";
@@ -133,7 +133,7 @@ function AppRoutes() {
         path="/about"
         element={
           <ProtectedRoute>
-            <About />
+            <Help />
           </ProtectedRoute>
         }
       />
