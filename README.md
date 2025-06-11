@@ -26,3 +26,8 @@ npm install react-router-dom
 ``` terminal
 npm install recharts
 ```
+
+4. Icons
+``` terminal
+npm install react-icons
+```
