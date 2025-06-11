@@ -28,7 +28,7 @@ function OwnerPage() {
       </div>
 
       <div className="owner-section">
-        <h2>Owner Information</h2>
+        <h2 className="owner-section-title">Owner Information</h2>
         <div className="owner-form-grid">
           <div className="owner-input-box">
             <label>First Name</label>

@@ -88,17 +88,7 @@
   padding-left: 1rem;
 }
 
-.about-section h2::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 4px;
-  height: 30px;
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  border-radius: 2px;
-}
+
 
 .about-text {
   font-size: 1.1rem;
