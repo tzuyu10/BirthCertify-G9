@@ -12,13 +12,8 @@ const Dashboard = () => {
   const [notifications, setNotifications] = useState([]);
   const [pastRequests, setPastRequests] = useState([]);
   const [downloadFile, setDownloadFile] = useState("");
-
-  const toggleSidebar = () => {
-    setIsSidebarOpen(prev => !prev);
-  };
-
+  
   useEffect(() => {
-    // Replace your backend data fetching
     setStats({ pending: 0, completed: 1, rejected: 0 });
     setNotifications([
       "Request ID #0001 completed",
@@ -30,30 +25,41 @@ const Dashboard = () => {
     setDownloadFile("Payment Voucher - Request #0001");
   }, []);
 
-  const user = { name: "Test" }; // Temporary mock user
+  const user = { name: "Test" };
 
   return (
     
     <div className="main-div">
+      
+      <div className="air air1"></div>
+      <div className="air air2"></div>
+      <div className="air air3"></div>
+      <div className="air air4"></div>
+
       <Navbar />
       <div className="main-container">
         <div className="header-container">
           <div className="greeting-section">
-            <h1>Good day, {user?.name?.split(' ')[0] || "User"}!</h1>
+            <h1>Good day, {user?.name?.split(" ")[0] || "User"}!</h1>
             <p>Welcome to your Dashboard.</p>
           </div>
         </div>
 
-        <StatsCards stats={stats} />
-
         <div className="dashboard-body">
           <div className="left-column">
+            <StatsCards stats={stats} />
             <PastRequests requests={pastRequests} />
           </div>
           <div className="right-column">
-            <button className="btn-primary"><IoIcons.IoMdAdd/> Create New Request</button>
-            <button className="btn-secondary"><IoIcons.IoIosArchive/> My Past Requests</button>
-            <button className="btn-secondary"><IoIcons.IoMdCreate/> My Drafts</button>
+            <button className="btn-primary">
+              <IoIcons.IoMdAdd /> Create New Request
+            </button>
+            <button className="btn-secondary">
+              <IoIcons.IoIosArchive /> My Past Requests
+            </button>
+            <button className="btn-secondary">
+              <IoIcons.IoMdCreate /> My Drafts
+            </button>
 
             <NotificationBox notifications={notifications} />
             <DownloadBox fileName={downloadFile} />
@@ -65,6 +71,8 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
+
 
 
 
