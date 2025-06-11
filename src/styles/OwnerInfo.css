@@ -25,7 +25,7 @@ html, body {
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
-  color: black;
+  color: #333;
   width: 100%;
   position: relative;
   overflow: visible;
@@ -89,7 +89,7 @@ h2,
   border: 1px solid #999;
   border-radius: 8px;
   background: white;
-  color: black;
+  color: #333;
 }
 
 .owner-input-box-date input[type="date"]::-webkit-calendar-picker-indicator {
@@ -121,7 +121,7 @@ h2,
   border: 1px solid #999;
   border-radius: 8px;
   background: white;
-  color: black;
+  color: #333;
 }
 
 .owner-input-box.owner-full {
@@ -144,8 +144,20 @@ h2,
   transition: background-color 0.3s;
 }
 
+.owner-submit-btn::before {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  font-size: 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
 .owner-submit-btn:hover {
   background-color: #0056b3;
+  
 }
 
 .owner-input-box-sex {
@@ -166,7 +178,7 @@ h2,
   border: 1px solid #999;
   border-radius: 8px;
   background: white;
-  color: black;
+  color: #333;
   cursor: pointer;
 }
 

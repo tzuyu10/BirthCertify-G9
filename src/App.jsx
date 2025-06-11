@@ -130,7 +130,7 @@ function AppRoutes() {
       />
 
       <Route
-        path="/about"
+        path="/help"
         element={
           <ProtectedRoute>
             <Help />
