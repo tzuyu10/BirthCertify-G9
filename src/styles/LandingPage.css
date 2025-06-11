@@ -1,7 +1,9 @@
 /* Main container */
 .landing-container {
   position: relative;
-  background: linear-gradient(135deg, #87CEEB 0%, #4A90E2 50%, #2E86AB 100%);
+  background: linear-gradient(135deg, #87CEEB 0%, #4A90E2 25%, #2E86AB 50%, #4A90E2 75%, #87CEEB 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 8s ease-in-out infinite;
   overflow-x: hidden;
 }
 
@@ -551,6 +553,14 @@
 }
 
 /* Animations */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  25% { background-position: 100% 50%; }
+  50% { background-position: 100% 100%; }
+  75% { background-position: 0% 100%; }
+  100% { background-position: 0% 50%; }
+}
+
 @keyframes float {
   0%, 100% { transform: translateY(0px) rotate(0deg); }
   50% { transform: translateY(-20px) rotate(180deg); }
@@ -612,6 +622,11 @@
   
   .particle {
     opacity: 0.7;
+  }
+  
+  /* Reduce gradient animation on mobile for better performance */
+  .landing-container {
+    animation-duration: 12s;
   }
   
   /* Hide some elements on mobile to reduce clutter */

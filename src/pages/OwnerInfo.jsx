@@ -21,7 +21,10 @@ function OwnerPage() {
   return (
     <div className="owner-page-container">
       <div className="owner-header">
-        <h1 className="owner-title">Certificate Holder Information</h1>
+        <h1 className="owner-title">Owner Information Form</h1>
+         <p className="owner-subtitle">
+          Please provide accurate information for certificate registration. All required fields must be completed to proceed.
+        </p>
       </div>
 
       <div className="owner-section">
@@ -29,19 +32,23 @@ function OwnerPage() {
         <div className="owner-form-grid">
           <div className="owner-input-box">
             <label>First Name</label>
-            <input type="text" id="owner_fname" value={formData.owner_fname} onChange={handleChange} required />
+            <input type="text" id="owner_fname" value={formData.owner_fname} onChange={handleChange} 
+            placeholder="Enter first name" required />
           </div>
           <div className="owner-input-box">
             <label>Middle Name</label>
-            <input type="text" id="owner_mname" value={formData.owner_mname} onChange={handleChange} required />
+            <input type="text" id="owner_mname" value={formData.owner_mname} onChange={handleChange} 
+            placeholder="Enter middle name" required />
           </div>
           <div className="owner-input-box">
             <label>Last Name</label>
-            <input type="text" id="owner_lname" value={formData.owner_lname} onChange={handleChange} required />
+            <input type="text" id="owner_lname" value={formData.owner_lname} onChange={handleChange} 
+            placeholder="Enter last name" required />
           </div>
           <div className="owner-input-box">
             <label>Suffix</label>
-            <input type="text" id="owner_suffix" value={formData.owner_suffix} onChange={handleChange} />
+            <input type="text" id="owner_suffix" value={formData.owner_suffix} onChange={handleChange} 
+            placeholder="Jr., Sr., III, etc."/>
           </div>
           <div className="owner-input-box-sex">
             <label>Sex</label>
@@ -57,7 +64,8 @@ function OwnerPage() {
           </div>
           <div className="owner-input-box owner-full">
             <label>Place of Birth</label>
-            <input type="text" id="place_of_birth" value={formData.place_of_birth} onChange={handleChange} required />
+            <input type="text" id="place_of_birth" value={formData.place_of_birth} onChange={handleChange} 
+            placeholder="City, Province, Country" required />
           </div>
           <div className="owner-input-box">
             <label>Nationality</label>
@@ -69,27 +77,33 @@ function OwnerPage() {
         <div className="owner-form-grid">
           <div className="owner-input-box">
             <label>House Number</label>
-            <input type="text" id="house_no" value={formData.house_no} onChange={handleChange} />
+            <input type="text" id="house_no" value={formData.house_no} onChange={handleChange} 
+            placeholder="911"/>
           </div>
           <div className="owner-input-box">
             <label>Street</label>
-            <input type="text" id="street" value={formData.street} onChange={handleChange} />
+            <input type="text" id="street" value={formData.street} onChange={handleChange} 
+            placeholder="Main Street"/>
           </div>
           <div className="owner-input-box">
             <label>Barangay</label>
-            <input type="text" id="barangay" value={formData.barangay} onChange={handleChange} />
+            <input type="text" id="barangay" value={formData.barangay} onChange={handleChange} 
+            placeholder="Barangay name"/>
           </div>
           <div className="owner-input-box">
             <label>City</label>
-            <input type="text" id="city" value={formData.city} onChange={handleChange} />
+            <input type="text" id="city" value={formData.city} onChange={handleChange} 
+            placeholder="City name"/>
           </div>
           <div className="owner-input-box">
             <label>Province</label>
-            <input type="text" id="province" value={formData.province} onChange={handleChange} />
+            <input type="text" id="province" value={formData.province} onChange={handleChange} 
+            placeholder="Province name"/>
           </div>
           <div className="owner-input-box">
             <label>Country</label>
-            <input type="text" id="country" value={formData.country} onChange={handleChange} />
+            <input type="text" id="country" value={formData.country} onChange={handleChange} 
+            placeholder="Country name"/>
           </div>
         </div>
 
@@ -97,15 +111,18 @@ function OwnerPage() {
         <div className="owner-form-grid">
           <div className="owner-input-box">
             <label>First Name</label>
-            <input type="text" id="f_fname" value={formData.f_fname} onChange={handleChange} />
+            <input type="text" id="f_fname" value={formData.f_fname} onChange={handleChange}
+            placeholder="Father's first name" />
           </div>
           <div className="owner-input-box">
             <label>Middle Name</label>
-            <input type="text" id="f_mname" value={formData.f_mname} onChange={handleChange} />
+            <input type="text" id="f_mname" value={formData.f_mname} onChange={handleChange} 
+            placeholder="Father's middle name"/>
           </div>
           <div className="owner-input-box">
             <label>Last Name</label>
-            <input type="text" id="f_lname" value={formData.f_lname} onChange={handleChange} />
+            <input type="text" id="f_lname" value={formData.f_lname} onChange={handleChange} 
+            placeholder="Father's last name"/>
           </div>
         </div>
 
@@ -113,15 +130,18 @@ function OwnerPage() {
         <div className="owner-form-grid">
           <div className="owner-input-box">
             <label>First Name</label>
-            <input type="text" id="m_fname" value={formData.m_fname} onChange={handleChange} />
+            <input type="text" id="m_fname" value={formData.m_fname} onChange={handleChange} 
+            placeholder="Mother's first name"/>
           </div>
           <div className="owner-input-box">
             <label>Middle Name</label>
-            <input type="text" id="m_mname" value={formData.m_mname} onChange={handleChange} />
+            <input type="text" id="m_mname" value={formData.m_mname} onChange={handleChange} 
+            placeholder="Mother's middle name"/>
           </div>
           <div className="owner-input-box">
             <label>Last Name</label>
-            <input type="text" id="m_lname" value={formData.m_lname} onChange={handleChange} />
+            <input type="text" id="m_lname" value={formData.m_lname} onChange={handleChange} 
+            placeholder="Mother's last name"/>
           </div>
         </div>
 

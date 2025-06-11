@@ -4,7 +4,17 @@
   min-height: 100vh;
   font-family: 'Poppins',sans-serif;
   color: #333;
-  background: linear-gradient(135deg, #87CEEB 0%, #4A90E2 50%, #2E86AB 100%);
+  background: linear-gradient(135deg, #87CEEB 0%, #4A90E2 25%, #2E86AB 50%, #4A90E2 75%, #87CEEB 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 8s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  25% { background-position: 100% 50%; }
+  50% { background-position: 100% 100%; }
+  75% { background-position: 0% 100%; }
+  100% { background-position: 0% 50%; }
 }
 
 .about-content {
@@ -12,7 +22,7 @@
   margin: 0 auto;
   padding: 2rem;
   background: rgba(255, 255, 255, 0.95);
-  margin-top: 4rem;
+  margin-top: 60px;
   border-radius: 20px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(10px);
@@ -241,4 +251,74 @@
   .value-item {
     padding: 1rem;
   }
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.team-member {
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid #e0e0e0;
+}
+
+.github-profile {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.github-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 2px solid #0366d6;
+}
+
+.github-info h4 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+}
+
+.member-role {
+  margin: 0 0 0.5rem 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.github-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #0366d6;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.github-link:hover {
+  text-decoration: underline;
+}
+
+.github-icon {
+  font-size: 1rem;
+}
+
+.tech-list {
+  margin-top: 1rem;
+  padding-left: 1.5rem;
+}
+
+.tech-list li {
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.tech-list strong {
+  color: #0366d6;
 }

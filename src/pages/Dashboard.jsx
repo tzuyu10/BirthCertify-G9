@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import StatsCards from "../components/DashboardStatCard";
 import NotificationBox from "../components/Notifications";
@@ -8,11 +9,12 @@ import "../styles/Dashboard.css";
 import * as IoIcons from 'react-icons/io';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState({ pending: 0, completed: 1, rejected: 0 });
   const [notifications, setNotifications] = useState([]);
   const [pastRequests, setPastRequests] = useState([]);
   const [downloadFile, setDownloadFile] = useState("");
-  
+
   useEffect(() => {
     setStats({ pending: 0, completed: 1, rejected: 0 });
     setNotifications([
@@ -27,10 +29,12 @@ const Dashboard = () => {
 
   const user = { name: "Test" };
 
+  const handleCreateNewRequest = () => {
+    navigate('/request');
+  };
+
   return (
-    
     <div className="main-div">
-      
       <div className="air air1"></div>
       <div className="air air2"></div>
       <div className="air air3"></div>
@@ -51,7 +55,7 @@ const Dashboard = () => {
             <PastRequests requests={pastRequests} />
           </div>
           <div className="right-column">
-            <button className="btn-primary">
+            <button className="btn-primary" onClick={handleCreateNewRequest}>
               <IoIcons.IoMdAdd /> Create New Request
             </button>
             <button className="btn-secondary">
@@ -71,8 +75,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-
-
-
-
-

@@ -17,9 +17,7 @@ html, body {
 
 /* Main container styles */
 .owner-page-container {
-  background: url(ownerBG.png) no-repeat center center;
-  background-size: cover;
-  background-attachment: fixed;
+  background: linear-gradient(135deg, #87CEEB 0%, #4A90E2 25%, #2E86AB 50%, #4A90E2 75%, #87CEEB 100%);
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -31,177 +29,333 @@ html, body {
   overflow: visible;
 }
 
+/* Animated background elements */
+.owner-page-container::before {
+  content: '';
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="25" cy="25" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1.5" fill="rgba(255,255,255,0.08)"/><circle cx="50" cy="10" r="1" fill="rgba(255,255,255,0.06)"/></svg>') repeat;
+  animation: float 20s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(180deg); }
+}
+
+/* Header styles integrated into main component */
 .owner-header {
   width: 100%;
   text-align: center;
-  margin-bottom: 20px;
-  padding: 10px 0;
+  margin-bottom: 40px;
+  padding: 20px 0;
+  position: relative;
+  z-index: 1;
 }
 
 .owner-title {
-  font-size: 28px;
-  font-weight: bold;
+  font-size: 42px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ffffff, #e0e7ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 15px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  letter-spacing: -0.02em;
 }
 
+.owner-subtitle {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+/* Main section container */
 .owner-section {
   width: 100%;
   max-width: 1280px;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 0 10px #ccc;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  padding: 50px;
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  z-index: 1;
+}
+
+/* Section headers */
+.owner-section-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #f1f5f9;
 }
 
 h2,
 .owner-section-title {
-  font-size: 20px;
-  font-weight: bold;
-  margin: 20px 0 10px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  letter-spacing: -0.01em;
+  padding-bottom: 10px;
 }
 
+/* Form grid layout */
 .owner-form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-bottom: 40px;
 }
 
-.owner-input-box {
+/* Input container styles */
+.owner-input-box,
+.owner-input-box-date,
+.owner-input-box-sex {
   display: flex;
   flex-direction: column;
-}
-
-.owner-input-box-date {
-  display: flex;
-  flex-direction: column;
-}
-
-.owner-input-box-date label {
-  font-size: 16px;
-  margin-bottom: 5px;
-  font-weight: 500;
-}
-
-.owner-input-box-date input,
-.owner-input-box-date select {
-  font-size: 16px;
-  padding: 10px 15px;
-  border: 1px solid #999;
-  border-radius: 8px;
-  background: white;
-  color: #333;
-}
-
-.owner-input-box-date input[type="date"]::-webkit-calendar-picker-indicator {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='black'%3e%3cpath fill-rule='evenodd' d='M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z' clip-rule='evenodd'/%3e%3c/svg%3e");
-  cursor: pointer;
-}
-
-/* Optional: Additional date input styling */
-.owner-input-box-date input[type="date"] {
   position: relative;
 }
 
-/* For better cross-browser compatibility */
+/* Label styles */
+.owner-input-box label,
+.owner-input-box-date label,
+.owner-input-box-sex label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.required-asterisk {
+  color: #ef4444;
+  font-weight: 700;
+}
+
+/* Input field styles */
+.owner-input-box input,
+.owner-input-box select,
+.owner-input-box-date input,
+.owner-input-box-date select,
+.owner-input-box-sex input,
+.owner-input-box-sex select {
+  font-size: 16px;
+  padding: 14px 18px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.8);
+  color: #1e293b;
+  transition: all 0.3s ease;
+  outline: none;
+  font-weight: 500;
+}
+
+.owner-input-box input:focus,
+.owner-input-box select:focus,
+.owner-input-box-date input:focus,
+.owner-input-box-date select:focus,
+.owner-input-box-sex input:focus,
+.owner-input-box-sex select:focus {
+  border-color: #4A90E2;
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.1);
+  transform: translateY(-1px);
+}
+
+.owner-input-box input:hover,
+.owner-input-box select:hover,
+.owner-input-box-date input:hover,
+.owner-input-box-date select:hover,
+.owner-input-box-sex input:hover,
+.owner-input-box-sex select:hover {
+  border-color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+/* Placeholder styles */
+.owner-input-box input::placeholder,
+.owner-input-box-date input::placeholder,
+.owner-input-box-sex input::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+/* Date input specific styles */
+.owner-input-box-date input[type="date"]::-webkit-calendar-picker-indicator {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%234A90E2'%3e%3cpath fill-rule='evenodd' d='M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z' clip-rule='evenodd'/%3e%3c/svg%3e");
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+}
+
 .owner-input-box-date input[type="date"]::-webkit-inner-spin-button,
 .owner-input-box-date input[type="date"]::-webkit-clear-button {
   display: none;
 }
 
-.owner-input-box label {
-  font-size: 16px;
-  margin-bottom: 5px;
-  font-weight: 500;
+/* Select dropdown styles */
+.owner-input-box select,
+.owner-input-box-sex select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%234A90E2' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+  padding-right: 40px;
 }
 
-.owner-input-box input,
-.owner-input-box select {
-  font-size: 16px;
-  padding: 10px 15px;
-  border: 1px solid #999;
-  border-radius: 8px;
-  background: white;
-  color: #333;
-}
-
+/* Full width inputs */
 .owner-input-box.owner-full {
   grid-column: span 2;
 }
 
+/* Button container */
 .owner-button-container {
-  margin-top: 2rem;
+  margin-top: 50px;
   text-align: center;
+  position: relative;
 }
 
+/* Submit button */
 .owner-submit-btn {
-  background-color: #007bff;
+  background: linear-gradient(135deg, #87CEEB 0%, #4A90E2 25%, #2E86AB 50%, #4A90E2 75%, #87CEEB 100%);
   color: white;
   border: none;
-  padding: 12px 24px;
-  font-size: 16px;
-  border-radius: 4px;
+  padding: 16px 40px;
+  font-size: 18px;
+  font-weight: 600;
+  border-radius: 12px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 0.5px;
+  min-width: 200px;
 }
 
 .owner-submit-btn::before {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  font-size: 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
 }
 
 .owner-submit-btn:hover {
-  background-color: #0056b3;
-  
+  background: linear-gradient(135deg, #6BB6D6 0%, #3A7BC8 25%, #1A5F8A 50%, #3A7BC8 75%, #6BB6D6 100%);
+  box-shadow: 0 8px 25px rgba(74, 144, 226, 0.6);
+  transform: translateY(-2px);
 }
 
-.owner-input-box-sex {
-  display: flex;
-  flex-direction: column;
+.owner-submit-btn:hover::before {
+  left: 100%;
 }
 
-.owner-input-box-sex label {
-  font-size: 16px;
-  margin-bottom: 5px;
-  font-weight: 500;
+.owner-submit-btn:active {
+  transform: translateY(0px);
+  box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);
 }
 
-.owner-input-box-sex input,
-.owner-input-box-sex select {
-  font-size: 16px;
-  padding: 10px 15px;
-  border: 1px solid #999;
-  border-radius: 8px;
-  background: white;
-  color: #333;
-  cursor: pointer;
-}
-
-/* Media queries for responsive design */
+/* Responsive design */
 @media (max-width: 768px) {
   .owner-page-container {
     padding: 15px;
   }
   
-  .owner-header {
-    padding: 5px 0;
+  .owner-title {
+    font-size: 32px;
+  }
+  
+  .owner-subtitle {
+    font-size: 16px;
   }
   
   .owner-section {
-    padding: 20px;
+    padding: 30px 25px;
+    border-radius: 20px;
   }
   
   .owner-form-grid {
     grid-template-columns: 1fr;
-    gap: 15px;
+    gap: 20px;
   }
   
   .owner-input-box.owner-full {
     grid-column: span 1;
   }
+  
+  .owner-section-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+  
+  h2, .owner-section-title {
+    font-size: 20px;
+  }
+  
+  .owner-submit-btn {
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .owner-page-container {
+    padding: 10px;
+  }
+  
+  .owner-section {
+    padding: 20px 15px;
+  }
+  
+  .owner-title {
+    font-size: 28px;
+  }
+}
+
+/* Loading animation for form submission */
+.owner-submit-btn.loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.owner-submit-btn.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid transparent;
+  border-top: 2px solid #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
