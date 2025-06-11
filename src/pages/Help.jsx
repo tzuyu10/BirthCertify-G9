@@ -2,7 +2,6 @@ import React from "react";
 import Navbar from "../components/Navbar";
 import "../styles/Navbar.css";
 import "../styles/Help.css"; // Import the Help CSS file
-import Background from "../components/AnimatedBackground"
 
 const FAQ = () => {
   return (
