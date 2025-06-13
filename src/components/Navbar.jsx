@@ -9,7 +9,7 @@ const Navbar = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [sidebar, setSidebar] = useState(false);
-  const initials = user?.name?.split(' ').map(n => n[0]).join('') || 'U';
+  const initials = user?.user_metadata?.full_name?.split("")[0] || 'U';
 
   const handleSignOut = async () => {
     try {
@@ -43,7 +43,7 @@ const Navbar = () => {
 
           <div className="profile-section">
             <div className="profile-circle">{initials}</div>
-            <h3>{user?.name || 'User Name'}</h3>
+            <h3>{user?.user_metadata?.full_name || 'User Name'}</h3>
             <p className="email">{user?.email || 'email@example.com'}</p>
             <p className="user-id">User ID: {user?.id || 'USER-12345'}</p>
             <button className="profile-btn">⚙️ Profile Settings</button>

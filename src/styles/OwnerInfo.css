@@ -13,6 +13,7 @@ html, body {
   height: auto;
   overflow-x: hidden;
   overflow-y: auto;
+  background: linear-gradient(135deg, #87CEEB 0%, #4A90E2 25%, #2E86AB 50%, #4A90E2 75%, #87CEEB 100%);
 }
 
 /* Main container styles */
@@ -234,7 +235,6 @@ html, body {
 
 /* Submit button */
 .owner-submit-btn {
-  background: linear-gradient(135deg, #87CEEB 0%, #4A90E2 25%, #2E86AB 50%, #4A90E2 75%, #87CEEB 100%);
   color: white;
   border: none;
   padding: 16px 40px;
@@ -244,10 +244,12 @@ html, body {
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);
+  background: #2196f3;
   position: relative;
   overflow: hidden;
   letter-spacing: 0.5px;
   min-width: 200px;
+  margin: 10px;
 }
 
 .owner-submit-btn::before {
@@ -259,10 +261,10 @@ html, body {
   height: 100%;
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
   transition: left 0.5s;
+  
 }
 
 .owner-submit-btn:hover {
-  background: linear-gradient(135deg, #6BB6D6 0%, #3A7BC8 25%, #1A5F8A 50%, #3A7BC8 75%, #6BB6D6 100%);
   box-shadow: 0 8px 25px rgba(74, 144, 226, 0.6);
   transform: translateY(-2px);
 }
