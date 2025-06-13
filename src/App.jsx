@@ -6,8 +6,8 @@ import {
   Navigate,
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import { RequestProvider } from "./contexts/RequestContext"; // ✅ Add this import
-import { OwnerProvider } from "./contexts/OwnerContext"; // ✅ Import this
+import { RequestProvider } from "./contexts/RequestContext";
+import { OwnerProvider } from "./contexts/OwnerContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleBasedRedirect from "./components/RoleBasedRedirect";
 import LandingPage from "./pages/LandingPage";
@@ -19,6 +19,7 @@ import Help from "./pages/Help";
 import Request from "./pages/Request";
 import Unauthorized from "./components/Unauthorized";
 import Owner from "./pages/OwnerInfo";
+import MyDraftsPage from "./components/MyDrafts";
 
 const LoadingSpinner = () => (
   <div
@@ -81,6 +82,16 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
+    <Route
+      path="/drafts"
+      element={
+        <ProtectedRoute>
+          <MyDraftsPage />
+        </ProtectedRoute>
+      }
+    />
+
       <Route
         path="/admin/dashboard"
         element={
