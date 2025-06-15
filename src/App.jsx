@@ -5,11 +5,17 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
+
+// Contexts
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { RequestProvider } from "./contexts/RequestContext";
 import { OwnerProvider } from "./contexts/OwnerContext";
+
+// Protected Routing
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleBasedRedirect from "./components/RoleBasedRedirect";
+
+// Pages
 import LandingPage from "./pages/LandingPage";
 import SignUp from "./pages/Signup";
 import Login from "./pages/Login";
@@ -20,7 +26,10 @@ import Request from "./pages/Request";
 import Unauthorized from "./components/Unauthorized";
 import Owner from "./pages/OwnerInfo";
 import MyDraftsPage from "./components/MyDrafts";
+import InvoiceViewer from "./components/InvoiceViewer";
+import DownloadBox from "./components/DownloadBox"; // ✅ Newly added
 
+// Loading Spinner
 const LoadingSpinner = () => (
   <div
     style={{
@@ -53,8 +62,10 @@ const LoadingSpinner = () => (
   </div>
 );
 
+// Default route logic for logged-in users
 const AuthenticatedHome = () => <RoleBasedRedirect />;
 
+// AppRoutes with full routing
 function AppRoutes() {
   const { user, loading } = useAuth();
 
@@ -83,14 +94,14 @@ function AppRoutes() {
         }
       />
 
-    <Route
-      path="/drafts"
-      element={
-        <ProtectedRoute>
-          <MyDraftsPage />
-        </ProtectedRoute>
-      }
-    />
+      <Route
+        path="/drafts"
+        element={
+          <ProtectedRoute>
+            <MyDraftsPage />
+          </ProtectedRoute>
+        }
+      />
 
       <Route
         path="/admin/dashboard"
@@ -100,6 +111,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/dashboard"
         element={
@@ -108,6 +120,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/request"
         element={
@@ -116,6 +129,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/owner"
         element={
@@ -124,6 +138,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/help"
         element={
@@ -132,17 +147,37 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
+      <Route
+        path="/pdf-generator"
+        element={
+          <ProtectedRoute>
+            <InvoiceViewer />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/download-box"
+        element={
+          <ProtectedRoute>
+            <DownloadBox />
+          </ProtectedRoute>
+        }
+      />
+
       <Route path="/unauthorized" element={<Unauthorized />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
 
+// App with providers
 function App() {
   return (
     <AuthProvider>
       <RequestProvider>
-        <OwnerProvider> {/* ✅ Wrap with OwnerProvider */}
+        <OwnerProvider>
           <Router>
             <AppRoutes />
           </Router>
@@ -151,6 +186,5 @@ function App() {
     </AuthProvider>
   );
 }
-
 
 export default App;
