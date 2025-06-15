@@ -3,7 +3,6 @@ import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../../supabase";
 import DashboardOverview from "../components/DashboardOverview";
 import ManageRequests from "../pages/ManageRequests";
-import Reports from "../components/Reports"; // Import the new Reports component
 import StatCard from "../components/StatCard";
 import "../styles/AdminDashboard.css";
 
@@ -88,13 +87,6 @@ function AdminDashboard() {
               <span className="nav-item-icon">👥</span>
               Manage Request
             </li>
-            <li
-              className={`nav-item ${activeTab === "reports" ? "active" : ""}`}
-              onClick={() => setActiveTab("reports")}
-            >
-              <span className="nav-item-icon">📄</span>
-              Reports
-            </li>
             <li className="nav-item signout-link" onClick={signOut}>
               <span className="nav-item-icon">🚪</span>
               Sign out
@@ -109,8 +101,6 @@ function AdminDashboard() {
         {activeTab === "requests" && (
           <ManageRequests users={users} stats={stats} />
         )}
-
-        {activeTab === "reports" && <Reports stats={stats} />}
       </main>
     </div>
   );

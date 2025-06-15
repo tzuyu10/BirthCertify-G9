@@ -61,17 +61,6 @@ const mockActivities = [
   },
 ];
 
-const mockRequests = [
-  { id: 1, text: "Admin Long approved Request 1239" },
-  { id: 2, text: "New birth certificate application submitted for John" },
-  { id: 3, text: "Request 1240 pending clearance" },
-  { id: 4, text: "Client profile for Anna Smith" },
-  { id: 5, text: "Request 1241 cleared by Special Unit" },
-  { id: 6, text: "Client understanding and requirements" },
-  { id: 7, text: "Request 1242 for Request for viewing address" },
-  { id: 8, text: "Client certificate Request 1243 in Registry" },
-];
-
 // Custom label component for pie chart
 const CustomLabel = ({
   cx,
@@ -275,20 +264,6 @@ const DashboardOverview = ({ stats }) => {
               <button className="see-all-btn">See All</button>
             </div>
           </div>
-        </div>
-
-        {/* Recent Requests Section */}
-        <div className="recent-requests">
-          <h3>Recent Requests</h3>
-          <div className="requests-list">
-            {mockRequests.map((request) => (
-              <div key={request.id} className="request-item">
-                <div className="request-icon">📄</div>
-                <div className="request-text">{request.text}</div>
-              </div>
-            ))}
-          </div>
-          <button className="see-all-btn">See All</button>
         </div>
       </div>
     </>
