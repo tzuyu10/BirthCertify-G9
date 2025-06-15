@@ -45,6 +45,7 @@ const Navbar = () => {
             <div className="profile-circle">{initials}</div>
             <h3>{user?.user_metadata?.full_name || 'User Name'}</h3>
             <p className="email">{user?.email || 'email@example.com'}</p>
+            <p className="user-id">User ID: {user?.id || 'USER-12345'}</p>
           </div>
 
           {SidebarData.map((item, index) => (
