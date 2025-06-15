@@ -90,7 +90,8 @@ const Dashboard = () => {
       ).length;
       
       const rejected = requestsWithStatus.filter(req => 
-        req.status?.status_current === 'cancelled'
+        req.status?.status_current === 'cancelled'||
+        req.status?.status_current === 'rejected'
       ).length;
 
       console.log('📈 Stats calculated:', { pending, completed, rejected });
