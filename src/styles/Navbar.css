@@ -124,20 +124,6 @@
   margin-bottom: 10px;
 }
 
-.profile-btn {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: white;
-  border: 1px solid #ffffff33;
-  border-radius: 20px;
-  padding: 6px 16px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background 0.2s;
-}
-
-.profile-btn:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-}
 
 .logout {
   position: absolute;
