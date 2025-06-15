@@ -96,7 +96,8 @@ export const supabaseHelpers = {
           req.status_current === 'completed' || req.status_current === 'approved'
         ).length,
         rejected: requestsWithStatus.filter(req => 
-          req.status_current === 'cancelled'
+          req.status_current === 'cancelled'||
+        req.status?.status_current === 'rejected'
         ).length
       }
 

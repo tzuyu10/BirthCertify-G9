@@ -160,7 +160,7 @@ export const RequestProvider = ({ children }) => {
 
       return data?.some(req =>
         req.status?.status_current &&
-        !['completed', 'cancelled'].includes(req.status.status_current.toLowerCase())
+        !['completed', 'cancelled', 'rejected', 'approved'].includes(req.status.status_current.toLowerCase())
       );
     } catch (error) {
       console.error('Error checking duplicate request:', error);
@@ -356,7 +356,7 @@ const deleteDraftWithCascade = async (reqId) => {
             throw new Error('A similar request already exists and is still in progress.');
           }
         }
-
+    
         const { data: insertedRequest, error } = await supabase
           .from('requester')
           .insert([{
@@ -372,23 +372,26 @@ const deleteDraftWithCascade = async (reqId) => {
           }])
           .select()
           .single();
-
+    
         if (error) throw error;
-
+    
         const reqId = insertedRequest.req_id;
-
-        // Create status record
-        const { error: statusError } = await supabase
-          .from('status')
-          .insert([{ req_id: reqId, status_current: 'pending' }]);
-        if (statusError) throw statusError;
-
-        // Create birth certificate record  
-        const { error: bcError } = await supabase
-          .from('birthcertificate')
-          .insert([{ req_id: reqId }]);
-        if (bcError) throw bcError;
-
+    
+        // Only create status and birthcertificate records if NOT a draft
+        if (!requestData.isDraft) {
+          // Create status record
+          const { error: statusError } = await supabase
+            .from('status')
+            .insert([{ req_id: reqId, status_current: 'pending' }]);
+          if (statusError) throw statusError;
+    
+          // Create birth certificate record  
+          const { error: bcError } = await supabase
+            .from('birthcertificate')
+            .insert([{ req_id: reqId }]);
+          if (bcError) throw bcError;
+        }
+    
         dispatch({ type: REQUEST_ACTIONS.ADD_REQUEST, payload: insertedRequest });
         return insertedRequest;
       } catch (error) {

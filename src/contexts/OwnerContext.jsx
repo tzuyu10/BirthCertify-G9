@@ -292,7 +292,7 @@ export const OwnerProvider = ({ children }) => {
           .order('req_date', { ascending: false })
           .limit(1)
           .maybeSingle();
-
+  
         if (draftError) {
           console.error('Error finding draft request:', draftError);
         } else if (draftRequest) {
@@ -305,25 +305,25 @@ export const OwnerProvider = ({ children }) => {
       if (!reqId) {
         throw new Error('No current request ID found. Please start a new request.');
       }
-
+  
       console.log('Using request ID:', reqId);
-
+  
       // Verify the request exists and belongs to the current user
       const { data: requestData, error: verifyError } = await supabase
         .from('requester')
-        .select('req_id, user_id, owner_id')
+        .select('req_id, user_id, owner_id, is_draft')
         .eq('req_id', reqId)
         .single();
-
+  
       if (verifyError) {
         console.error('Error verifying request:', verifyError);
         throw new Error('Invalid request ID. Please start a new request.');
       }
-
+  
       if (requestData.user_id !== currentUser.id) {
         throw new Error('Request does not belong to current user.');
       }
-
+  
       // Create or find parent record
       const parent = await findOrCreate(
         'parent',
@@ -342,7 +342,7 @@ export const OwnerProvider = ({ children }) => {
           owner_m_lname: formData.m_lname,
         }
       );
-
+  
       // Create or find address record
       const address = await findOrCreate(
         'address',
@@ -363,7 +363,7 @@ export const OwnerProvider = ({ children }) => {
           owner_country: formData.country,
         }
       );
-
+  
       let ownerData;
       
       if (requestData.owner_id) {
@@ -385,7 +385,7 @@ export const OwnerProvider = ({ children }) => {
           .eq('owner_id', requestData.owner_id)
           .select()
           .single();
-
+  
         if (updateError) throw updateError;
         ownerData = updatedOwner;
       } else {
@@ -406,37 +406,79 @@ export const OwnerProvider = ({ children }) => {
           })
           .select()
           .single();
-
+  
         if (ownerError) throw ownerError;
         ownerData = newOwner;
-
+  
         // Update the requester record with owner_id
         const { error: updateRequestError } = await supabase
           .from('requester')
           .update({ owner_id: ownerData.owner_id })
           .eq('req_id', reqId);
-
+  
         if (updateRequestError) throw updateRequestError;
       }
-
+  
       // Update draft status
       const { error: updateError } = await supabase
         .from('requester')
         .update({ is_draft: isDraft })
         .eq('req_id', reqId);
-
+  
       if (updateError) throw updateError;
-
-      // If not a draft, update the status to 'processing'
-      if (!isDraft) {
+  
+      // If converting from draft to submitted (not draft), create status and birthcertificate records
+      if (!isDraft && requestData.is_draft) {
+        // Check if status record already exists
+        const { data: existingStatus, error: statusCheckError } = await supabase
+          .from('status')
+          .select('req_id')
+          .eq('req_id', reqId)
+          .maybeSingle();
+  
+        if (statusCheckError) throw statusCheckError;
+  
+        if (!existingStatus) {
+          // Create status record
+          const { error: statusError } = await supabase
+            .from('status')
+            .insert([{ req_id: reqId, status_current: 'pending' }]);
+          if (statusError) throw statusError;
+        } else {
+          // Update existing status to pending
+          const { error: statusUpdateError } = await supabase
+            .from('status')
+            .update({ status_current: 'pending' })
+            .eq('req_id', reqId);
+          if (statusUpdateError) throw statusUpdateError;
+        }
+  
+        // Check if birthcertificate record already exists
+        const { data: existingBC, error: bcCheckError } = await supabase
+          .from('birthcertificate')
+          .select('req_id')
+          .eq('req_id', reqId)
+          .maybeSingle();
+  
+        if (bcCheckError) throw bcCheckError;
+  
+        if (!existingBC) {
+          // Create birth certificate record
+          const { error: bcError } = await supabase
+            .from('birthcertificate')
+            .insert([{ req_id: reqId }]);
+          if (bcError) throw bcError;
+        }
+      } else if (!isDraft) {
+        // If not a draft and not converting from draft, just update the status to 'pending'
         const { error: statusError } = await supabase
           .from('status')
-          .update({ status_current: 'processing' })
+          .update({ status_current: 'pending' })
           .eq('req_id', reqId);
-
+  
         if (statusError) throw statusError;
       }
-
+  
       console.log(`Owner data ${isDraft ? 'saved as draft' : 'submitted'} successfully.`);
       return ownerData;
     } catch (error) {
