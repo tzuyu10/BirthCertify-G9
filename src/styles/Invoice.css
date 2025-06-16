@@ -98,6 +98,17 @@ body {
   transform: translateY(0);
 }
 
+.form-display-underline {
+  display: inline-block;
+  width: 100%;
+  border-bottom: 2px solid #000 !important;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  background: transparent !important;
+  padding-bottom: 2px;
+}
+
 /* Form Content */
 .form-content {
   padding: 20px;
