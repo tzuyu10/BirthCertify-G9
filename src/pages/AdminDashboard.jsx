@@ -3,7 +3,6 @@ import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../../supabase";
 import DashboardOverview from "../components/DashboardOverview";
 import ManageRequests from "../pages/ManageRequests";
-import StatCard from "../components/StatCard";
 import "../styles/AdminDashboard.css";
 
 function AdminDashboard() {
@@ -206,6 +205,7 @@ function AdminDashboard() {
           justifyContent: 'center', 
           alignItems: 'center', 
           height: '100vh',
+          width: '100%',
           fontSize: '18px'
         }}>
           Loading admin dashboard...
@@ -224,6 +224,7 @@ function AdminDashboard() {
           justifyContent: 'center', 
           alignItems: 'center', 
           height: '100vh',
+          width: '100%',
           color: 'red'
         }}>
           <h3>Error loading admin dashboard</h3>
@@ -257,7 +258,7 @@ function AdminDashboard() {
           </div>
           <div className="role">Admin</div>
           {lastRefresh && (
-            <div style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>
+            <div style={{ fontSize: '12px', color: 'white', marginTop: '5px' }}>
               Last updated: {lastRefresh}
             </div>
           )}

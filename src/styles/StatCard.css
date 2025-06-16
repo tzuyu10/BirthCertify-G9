@@ -9,6 +9,22 @@
   font-size: 18px;
 }
 
+.activity-list  {
+  scrollbar-width: none;
+  margin-bottom: -30px;
+}
+.activity-container {
+  height: auto;
+}
+
+.activiy-section {
+  height: auto;
+}
+
+.chart-legend {
+  color: black;
+}
+
 .error {
   color: #f44336;
 }

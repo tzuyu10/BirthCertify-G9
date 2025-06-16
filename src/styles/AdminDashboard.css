@@ -212,18 +212,22 @@
 /* Stat card colors */
 .stat-card.blue {
   background-color: #007bff;
+  color: white;
 }
 
 .stat-card.green {
   background-color: #28a745;
+  color: white;
 }
 
 .stat-card.orange {
   background-color: #ffc107;
+  color: white;
 }
 
 .stat-card.red {
   background-color: #dc3545;
+  color: white;
 }
 
 /* Dashboard overview */

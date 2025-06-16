@@ -8,6 +8,7 @@ import PastRequests from "../components/PastRequests";
 import { supabase } from '../../supabase';
 import "../styles/Dashboard.css";
 import * as IoIcons from 'react-icons/io';
+import TermsOverlay from "../components/TermsOverlay"
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -19,6 +20,29 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [lastRefresh, setLastRefresh] = useState(null);
+  const [showTerms, setShowTerms] = useState(false);
+
+  // Enhanced terms acceptance check
+  const checkTermsAcceptance = () => {
+    if (!user) return false;
+    const termsAccepted = localStorage.getItem(`termsAccepted_${user.id}`);
+    return termsAccepted === 'true';
+  };
+
+  // Handle terms acceptance
+  const handleTermsAccept = () => {
+    if (user) {
+      localStorage.setItem(`termsAccepted_${user.id}`, 'true');
+      console.log('✅ Terms accepted for user:', user.id);
+    }
+    setShowTerms(false);
+  };
+
+  // Handle terms decline
+  const handleTermsDecline = () => {
+    console.log('❌ Terms declined, redirecting to home');
+    navigate('/');
+  };
 
   // Enhanced data fetching with better error handling
   const fetchDashboardData = async () => {
@@ -145,6 +169,18 @@ const Dashboard = () => {
     fetchDashboardData();
   }, []);
 
+  // Check and show terms overlay when user is loaded
+  useEffect(() => {
+    if (user && !loading) {
+      const hasAcceptedTerms = checkTermsAcceptance();
+      console.log('📋 Terms acceptance status:', hasAcceptedTerms);
+      
+      if (!hasAcceptedTerms) {
+        setShowTerms(true);
+      }
+    }
+  }, [user, loading]);
+
   // Enhanced real-time subscription with better debugging
   useEffect(() => {
     if (!user) return;
@@ -218,8 +254,6 @@ const Dashboard = () => {
     fetchDashboardData();
   };
 
-
-
   // Show loading state
   if (loading) {
     return (
@@ -278,6 +312,13 @@ const Dashboard = () => {
 
   return (
     <div className="main-div">
+
+      <TermsOverlay
+        isVisible={showTerms}
+        onAccept={handleTermsAccept}
+        onDecline={handleTermsDecline}
+      />
+
       <div className="air air1"></div>
       <div className="air air2"></div>
       <div className="air air3"></div>
@@ -323,9 +364,6 @@ const Dashboard = () => {
           <div className="right-column">
             <button className="btn-primary" onClick={handleCreateNewRequest}>
               <IoIcons.IoMdAdd /> Create New Request
-            </button>
-            <button className="btn-secondary">
-              <IoIcons.IoIosArchive /> My Past Requests
             </button>
             <button className="btn-secondary" onClick={handleViewDrafts}>
               <IoIcons.IoMdCreate /> My Drafts

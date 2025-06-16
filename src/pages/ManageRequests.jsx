@@ -432,7 +432,6 @@ function ManageRequests() {
                       background: 'none',
                       border: 'none',
                       color: '#007bff',
-                      textDecoration: 'underline',
                       cursor: 'pointer',
                       fontSize: '14px'
                     }}
@@ -445,7 +444,15 @@ function ManageRequests() {
                 </td>
                 <td>{request.user?.email || 'N/A'}</td>
                 <td>{request.req_contact || request.user?.contact || 'N/A'}</td>
-                <td title={request.req_purpose}>
+                <td 
+                  title={request.req_purpose}
+                  style={{ 
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    maxWidth: '200px' // adjust as needed
+                  }}
+                >
                   {request.req_purpose ? 
                     (request.req_purpose.length > 30 ? 
                       request.req_purpose.substring(0, 30) + '...' : 
@@ -471,6 +478,7 @@ function ManageRequests() {
                       borderRadius: '4px',
                       border: '1px solid #ccc',
                       fontSize: '12px',
+                      background: '#007bff',
                       cursor: updatingStatus[request.req_id] ? 'not-allowed' : 'pointer',
                       opacity: updatingStatus[request.req_id] ? 0.6 : 1
                     }}
@@ -545,6 +553,7 @@ function ManageRequests() {
             maxWidth: '90vw',
             maxHeight: '90vh',
             overflow: 'auto',
+            scrollbarWidth: 'none', 
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
           }}>
             <div className="modal-header" style={{
@@ -563,7 +572,7 @@ function ManageRequests() {
                   border: 'none',
                   fontSize: '24px',
                   cursor: 'pointer',
-                  color: '#666',
+                  color: '#007bff',
                   padding: '0',
                   width: '30px',
                   height: '30px',
@@ -772,12 +781,13 @@ function ManageRequests() {
                 onClick={closeModal}
                 style={{
                   padding: '10px 20px',
-                  backgroundColor: '#6c757d',
+                  backgroundColor: '#007bff',
                   color: 'white',
                   border: 'none',
                   borderRadius: '5px',
                   cursor: 'pointer',
-                  fontSize: '14px'
+                  fontSize: '14px',
+                  marginLeft: '20px'
                 }}
               >
                 Close

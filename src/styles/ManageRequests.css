@@ -1,5 +1,6 @@
 .manage-request-container {
   min-height: 100vh;
+  color: #333;
 }
 
 .page-title {
@@ -16,6 +17,10 @@
 .search-bar {
   position: relative;
   width: 300px;
+}
+
+.status-select option {
+  cursor: pointer;
 }
 
 .search-icon {
@@ -144,6 +149,7 @@
   font-size: 14px;
   line-height: 1.5;
   vertical-align: middle;
+  overflow-wrap: normal;
 }
 
 /* Table row animations */

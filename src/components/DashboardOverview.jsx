@@ -8,6 +8,7 @@ import {
   LabelList,
 } from "recharts";
 import StatCard from "../components/StatCard";
+import "../styles/StatCard.css";
 
 // Mock data for activities
 const mockActivities = [
@@ -261,7 +262,6 @@ const DashboardOverview = ({ stats }) => {
                   </div>
                 ))}
               </div>
-              <button className="see-all-btn">See All</button>
             </div>
           </div>
         </div>

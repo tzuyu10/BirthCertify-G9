@@ -7,12 +7,22 @@
     background: transparent;
     color: #fff;
   }
-  
+
+.main-container{
+  margin-top: 30px;
+}
+
   .drafts-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 30px;
+  }
+
+  .header-buttons {
+    display: flex;
+    gap: 12px;
+    align-items: center;
   }
   
   .drafts-header h1 {
@@ -38,17 +48,37 @@
     transition: background-color 0.2s ease;
   }
 
-  .btn-new-request::before {
-    
+  .btn-back {
+    background-color: white;
+    color: #2196f3;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   }
+
   
   .btn-new-request:hover {
     background-color: #f5f5f5;
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
     transform: translateY(-2px);
   }
+
+  .btn-back:hover {
+    background-color: #f5f5f5;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
   
   .btn-new-request:active {
+    transform: translateY(0px);
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);  
+  }
+
+  .btn-back:active {
     transform: translateY(0px);
     box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);  
   }
@@ -257,6 +287,11 @@
       align-items: flex-start;
       gap: 20px;
     }
+
+    .header-buttons {
+      width: 100%;
+      justify-content: flex-start;
+    }
     
     .drafts-header h1 {
       font-size: 1.75rem;
@@ -286,6 +321,18 @@
     
     .drafts-header h1 {
       font-size: 1.5rem;
+    }
+
+    .header-buttons {
+      flex-direction: column;
+      width: 100%;
+      gap: 10px;
+    }
+
+    .btn-new-request,
+    .btn-back {
+      width: 100%;
+      text-align: center;
     }
     
     .draft-card {
@@ -321,6 +368,7 @@
   
   /* Focus states for accessibility */
   .btn-new-request:focus,
+  .btn-back:focus,
   .btn-start-first:focus,
   .btn-continue:focus,
   .btn-delete:focus {

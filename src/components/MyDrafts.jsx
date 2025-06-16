@@ -40,6 +40,10 @@ const MyDrafts = () => {
     fetchUserDrafts();
   }, [currentUser?.id, fetchFilteredRequests]);
 
+  const handleBack = () => {
+    navigate(-1);
+  };
+
   const handleContinueDraft = async (draftId) => {
     try {
       setLoadingAction(draftId);
@@ -161,109 +165,119 @@ const MyDrafts = () => {
 
   return (
     <div className="drafts-container">
-      <div className="drafts-header">
-        <div>
-          <h1>My Drafts</h1>
-          <p>Continue working on your saved certificate requests</p>
-        </div>
-        <button
-          onClick={handleStartNewRequest}
-          className="btn-new-request"
-        >
-          + New Request
-        </button>
-      </div>
+      <div className="main-container">
 
-      {error && (
-        <div className="error-message">
-          Error: {error}
-        </div>
-      )}
-
-      {drafts.length === 0 ? (
-        <div className="no-drafts">
-          <div className="no-drafts-icon">📝</div>
-          <h3>No drafts available</h3>
-          <p>You haven't started any certificate requests yet.</p>
+        
+        <div className="drafts-header">
+          <div>
+            <h1>My Drafts</h1>
+            <p>Continue working on your saved certificate requests</p>
+          </div>
+          <div className="header-buttons">
           <button
             onClick={handleStartNewRequest}
-            className="btn-start-first"
+            className="btn-new-request"
           >
-            Start Your First Request
+            + New Request
+          </button>          
+          <button onClick={handleBack} className="btn-back">
+            ← Back
           </button>
+          </div>
+
         </div>
-      ) : (
-        <div className="drafts-grid">
-          {drafts.map((draft) => {
-            const completion = getCompletionStatus(draft);
-            const isLoading = loadingAction === draft.req_id;
-            
-            return (
-              <div
-                key={draft.req_id}
-                className={`draft-card ${isLoading ? 'loading' : ''}`}
-              >
-                <div className="draft-info">
-                  <h3 className="draft-title">
-                    {draft.req_purpose || 'Birth Certificate Request'}
-                  </h3>
-                  <p className="draft-subtitle">
-                    For: {draft.req_fname} {draft.req_lname}
-                  </p>
-                  <p className="draft-date">
-                    Last updated: {formatDate(draft.req_date)}
-                  </p>
-                  {draft.bc_number && (
-                    <p className="draft-bc-number">
-                      BC#: {draft.bc_number}
+
+        {error && (
+          <div className="error-message">
+            Error: {error}
+          </div>
+        )}
+
+        {drafts.length === 0 ? (
+          <div className="no-drafts">
+            <div className="no-drafts-icon">📝</div>
+            <h3>No drafts available</h3>
+            <p>You haven't started any certificate requests yet.</p>
+            <button
+              onClick={handleStartNewRequest}
+              className="btn-start-first"
+            >
+              Start Your First Request
+            </button>
+          </div>
+        ) : (
+          <div className="drafts-grid">
+            {drafts.map((draft) => {
+              const completion = getCompletionStatus(draft);
+              const isLoading = loadingAction === draft.req_id;
+              
+              return (
+                <div
+                  key={draft.req_id}
+                  className={`draft-card ${isLoading ? 'loading' : ''}`}
+                >
+                  <div className="draft-info">
+                    <h3 className="draft-title">
+                      {draft.req_purpose || 'Birth Certificate Request'}
+                    </h3>
+                    <p className="draft-subtitle">
+                      For: {draft.req_fname} {draft.req_lname}
                     </p>
-                  )}
-                </div>
+                    <p className="draft-date">
+                      Last updated: {formatDate(draft.req_date)}
+                    </p>
+                    {draft.bc_number && (
+                      <p className="draft-bc-number">
+                        BC#: {draft.bc_number}
+                      </p>
+                    )}
+                  </div>
 
-                <div className="completion-section">
-                  <div className="completion-header">
-                    <span 
-                      className="completion-status"
-                      style={{ color: completion.color }}
+                  <div className="completion-section">
+                    <div className="completion-header">
+                      <span 
+                        className="completion-status"
+                        style={{ color: completion.color }}
+                      >
+                        {completion.status}
+                      </span>
+                      <span className="completion-percentage">
+                        {completion.progress}%
+                      </span>
+                    </div>
+                    <div className="progress-bar">
+                      <div 
+                        className="progress-fill"
+                        style={{
+                          width: `${completion.progress}%`,
+                          backgroundColor: completion.color
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="draft-buttons">
+                    <button
+                      onClick={() => handleContinueDraft(draft.req_id)}
+                      disabled={isLoading}
+                      className="btn-continue"
                     >
-                      {completion.status}
-                    </span>
-                    <span className="completion-percentage">
-                      {completion.progress}%
-                    </span>
-                  </div>
-                  <div className="progress-bar">
-                    <div 
-                      className="progress-fill"
-                      style={{
-                        width: `${completion.progress}%`,
-                        backgroundColor: completion.color
-                      }}
-                    />
+                      {isLoading ? 'Loading...' : 'Continue'}
+                    </button>
+                    <button
+                      onClick={() => handleDeleteDraft(draft.req_id)}
+                      disabled={isLoading}
+                      className="btn-delete"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
-
-                <div className="draft-buttons">
-                  <button
-                    onClick={() => handleContinueDraft(draft.req_id)}
-                    disabled={isLoading}
-                    className="btn-continue"
-                  >
-                    {isLoading ? 'Loading...' : 'Continue'}
-                  </button>
-                  <button
-                    onClick={() => handleDeleteDraft(draft.req_id)}
-                    disabled={isLoading}
-                    className="btn-delete"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
