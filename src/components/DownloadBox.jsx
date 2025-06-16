@@ -5,38 +5,40 @@ import { supabase } from "../../supabase";
 import * as IoIcons from "react-icons/io";
 
 // Valid status values that allow PDF generation
-const APPROVED_STATUSES = ['approved', 'completed'];
+const APPROVED_STATUSES = ["approved", "completed"];
 
 // Service to get all approved/completed requests
 class MultipleRequestsService {
   static async getUserData(authUserId) {
     const { data, error } = await supabase
-      .from('user')
-      .select('*')
-      .eq('user_id', authUserId)
+      .from("user")
+      .select("*")
+      .eq("user_id", authUserId)
       .single();
-  
+
     if (error) {
-      if (error.code === 'PGRST116') {
+      if (error.code === "PGRST116") {
         const { data: allData, error: fallbackError } = await supabase
-          .from('user')
-          .select('*')
-          .eq('user_id', authUserId);
-        
+          .from("user")
+          .select("*")
+          .eq("user_id", authUserId);
+
         if (fallbackError) {
-          throw new Error(`Failed to fetch user data: ${fallbackError.message}`);
+          throw new Error(
+            `Failed to fetch user data: ${fallbackError.message}`
+          );
         }
-        
+
         if (!allData || allData.length === 0) {
-          throw new Error('User not found in database');
+          throw new Error("User not found in database");
         }
-        
+
         return allData[0];
       }
-      
+
       throw new Error(`Failed to fetch user data: ${error.message}`);
     }
-  
+
     return data;
   }
 
@@ -44,20 +46,24 @@ class MultipleRequestsService {
     try {
       // Get all requester data for the user
       const { data: requesterData, error: requesterError } = await supabase
-        .from('requester')
-        .select(`
+        .from("requester")
+        .select(
+          `
           *,
           owner!requester_owner_id_fkey(
             *,
             parent(*),
             address(*)
           )
-        `)
-        .eq('user_id', userId)
-        .order('req_date', { ascending: false });
+        `
+        )
+        .eq("user_id", userId)
+        .order("req_date", { ascending: false });
 
       if (requesterError) {
-        throw new Error(`Failed to fetch requester data: ${requesterError.message}`);
+        throw new Error(
+          `Failed to fetch requester data: ${requesterError.message}`
+        );
       }
 
       if (!requesterData || requesterData.length === 0) {
@@ -72,9 +78,9 @@ class MultipleRequestsService {
           }
 
           const { data: statusData, error: statusError } = await supabase
-            .from('status')
-            .select('*')
-            .eq('status_id', req.status_id)
+            .from("status")
+            .select("*")
+            .eq("status_id", req.status_id)
             .single();
 
           if (statusError) {
@@ -86,7 +92,7 @@ class MultipleRequestsService {
       );
 
       // Filter for approved/completed requests
-      const approvedRequests = requestersWithStatus.filter(req => {
+      const approvedRequests = requestersWithStatus.filter((req) => {
         const statusCurrent = req.status?.status_current?.toLowerCase();
         return statusCurrent && APPROVED_STATUSES.includes(statusCurrent);
       });
@@ -98,9 +104,9 @@ class MultipleRequestsService {
 
           if (req.bc_number) {
             const { data: bcData } = await supabase
-              .from('birthcertificate')
-              .select('bc_number, bc_issue_date, req_id')
-              .eq('bc_number', req.bc_number)
+              .from("birthcertificate")
+              .select("bc_number, bc_issue_date, req_id")
+              .eq("bc_number", req.bc_number)
               .single();
 
             if (bcData) {
@@ -110,9 +116,9 @@ class MultipleRequestsService {
 
           if (!birthCertData && req.req_id) {
             const { data: bcData } = await supabase
-              .from('birthcertificate')
-              .select('bc_number, bc_issue_date, req_id')
-              .eq('req_id', req.req_id)
+              .from("birthcertificate")
+              .select("bc_number, bc_issue_date, req_id")
+              .eq("req_id", req.req_id)
               .single();
 
             if (bcData) {
@@ -122,14 +128,14 @@ class MultipleRequestsService {
 
           return {
             ...req,
-            birthcertificate: birthCertData
+            birthcertificate: birthCertData,
           };
         })
       );
 
       return requestsWithBirthCerts;
     } catch (error) {
-      console.error('Error in getAllApprovedRequests:', error);
+      console.error("Error in getAllApprovedRequests:", error);
       throw error;
     }
   }
@@ -137,105 +143,16 @@ class MultipleRequestsService {
   static async getAllApprovedRequestsForUser(authUserId) {
     try {
       const userData = await this.getUserData(authUserId);
-      const approvedRequests = await this.getAllApprovedRequests(userData.user_id);
+      const approvedRequests = await this.getAllApprovedRequests(
+        userData.user_id
+      );
       return approvedRequests;
     } catch (error) {
-      console.error('Error in getAllApprovedRequestsForUser:', error);
+      console.error("Error in getAllApprovedRequestsForUser:", error);
       throw error;
     }
   }
 }
-
-// Individual download box component
-const SingleDownloadBox = ({ request, onDownloadClick }) => {
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
-    } catch {
-      return dateString;
-    }
-  };
-
-  const ownerName = `${request.owner?.owner_fname || ''} ${request.owner?.owner_lname || ''}`.trim();
-  const bcNumber = request.birthcertificate?.bc_number || request.bc_number || 'N/A';
-  const requestDate = formatDate(request.req_date);
-  const status = request.status?.status_current || 'Unknown';
-
-  return (
-    <div
-      className="download-box"
-      onClick={() => onDownloadClick(request.req_id)}
-      style={{
-        cursor: "pointer",
-        border: "2px solid #e5e7eb",
-        borderRadius: "8px",
-        padding: "20px",
-        margin: "10px",
-        backgroundColor: "#f9fafb",
-        textAlign: "left",
-        transition: "all 0.2s ease",
-      }}
-      onMouseEnter={(e) => {
-        e.target.style.backgroundColor = "#f3f4f6";
-        e.target.style.borderColor = "#d1d5db";
-      }}
-      onMouseLeave={(e) => {
-        e.target.style.backgroundColor = "#f9fafb";
-        e.target.style.borderColor = "#e5e7eb";
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", marginBottom: "12px" }}>
-        <IoIcons.IoIosDownload size={24} style={{ marginRight: "8px", color: "#2563eb" }} />
-        <h4 style={{ margin: 0, color: "#1f2937" }}>Birth Certificate</h4>
-      </div>
-      
-      <div style={{ marginBottom: "8px" }}>
-        <strong>Owner:</strong> {ownerName || 'N/A'}
-      </div>
-      
-      <div style={{ marginBottom: "8px" }}>
-        <strong>BC Number:</strong> {bcNumber}
-      </div>
-      
-      <div style={{ marginBottom: "8px" }}>
-        <strong>Request Date:</strong> {requestDate}
-      </div>
-      
-      <div style={{ marginBottom: "12px" }}>
-        <span 
-          style={{
-            padding: "4px 8px",
-            borderRadius: "4px",
-            fontSize: "12px",
-            fontWeight: "bold",
-            backgroundColor: status.toLowerCase() === 'completed' ? '#dcfce7' : '#dbeafe',
-            color: status.toLowerCase() === 'completed' ? '#166534' : '#1d4ed8'
-          }}
-        >
-          {status.toUpperCase()}
-        </span>
-      </div>
-
-      <div
-        style={{
-          color: "#2563eb",
-          textDecoration: "underline",
-          cursor: "pointer",
-          fontSize: "14px",
-          fontWeight: "500"
-        }}
-      >
-        Download Certificate →
-      </div>
-    </div>
-  );
-};
 
 // Main component
 const MultipleDownloadBox = () => {
@@ -255,10 +172,13 @@ const MultipleDownloadBox = () => {
       try {
         setLoading(true);
         setError(null);
-        const approvedRequests = await MultipleRequestsService.getAllApprovedRequestsForUser(currentUser.id);
+        const approvedRequests =
+          await MultipleRequestsService.getAllApprovedRequestsForUser(
+            currentUser.id
+          );
         setRequests(approvedRequests);
       } catch (err) {
-        console.error('Error fetching requests:', err);
+        console.error("Error fetching requests:", err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -271,6 +191,40 @@ const MultipleDownloadBox = () => {
   const handleDownloadClick = (requestId) => {
     // Navigate to PDF generator with specific request ID
     navigate(`/pdf-generator?reqId=${requestId}`);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+  const getStatusBadge = (status) => {
+    const statusLower = status?.toLowerCase() || "";
+    const isCompleted = statusLower === "completed";
+
+    return (
+      <span
+        style={{
+          padding: "4px 8px",
+          borderRadius: "4px",
+          fontSize: "12px",
+          fontWeight: "bold",
+          backgroundColor: isCompleted ? "#dcfce7" : "#dbeafe",
+          color: isCompleted ? "#166534" : "#1d4ed8",
+        }}
+      >
+        {status?.toUpperCase() || "UNKNOWN"}
+      </span>
+    );
   };
 
   if (loading) {
@@ -298,18 +252,246 @@ const MultipleDownloadBox = () => {
   }
 
   return (
-    <div>
+    <div style={{ padding: "20px" }}>
       <h3 style={{ marginBottom: "20px", color: "#1f2937" }}>
-        Your Approved Birth Certificate Requests ({requests.length})
+        Birth Certificate Request History ({requests.length})
       </h3>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "10px" }}>
-        {requests.map((request) => (
-          <SingleDownloadBox
-            key={request.req_id}
-            request={request}
-            onDownloadClick={handleDownloadClick}
-          />
-        ))}
+
+      {/* Scrollable Table Container */}
+      <div
+        style={{
+          border: "1px solid #e5e7eb",
+          borderRadius: "8px",
+          backgroundColor: "#ffffff",
+          boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)",
+          maxHeight: "500px",
+          overflow: "auto",
+        }}
+      >
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            fontSize: "14px",
+          }}
+        >
+          <thead
+            style={{
+              backgroundColor: "#f9fafb",
+              position: "sticky",
+              top: "0",
+              zIndex: "10",
+            }}
+          >
+            <tr>
+              <th
+                style={{
+                  padding: "12px 16px",
+                  textAlign: "left",
+                  fontWeight: "600",
+                  color: "#374151",
+                  borderBottom: "1px solid #e5e7eb",
+                  backgroundColor: "#f9fafb",
+                }}
+              >
+                Owner Name
+              </th>
+              <th
+                style={{
+                  padding: "12px 16px",
+                  textAlign: "left",
+                  fontWeight: "600",
+                  color: "#374151",
+                  borderBottom: "1px solid #e5e7eb",
+                  backgroundColor: "#f9fafb",
+                }}
+              >
+                BC Number
+              </th>
+              <th
+                style={{
+                  padding: "12px 16px",
+                  textAlign: "left",
+                  fontWeight: "600",
+                  color: "#374151",
+                  borderBottom: "1px solid #e5e7eb",
+                  backgroundColor: "#f9fafb",
+                }}
+              >
+                Request Date
+              </th>
+              <th
+                style={{
+                  padding: "12px 16px",
+                  textAlign: "left",
+                  fontWeight: "600",
+                  color: "#374151",
+                  borderBottom: "1px solid #e5e7eb",
+                  backgroundColor: "#f9fafb",
+                }}
+              >
+                Issue Date
+              </th>
+              <th
+                style={{
+                  padding: "12px 16px",
+                  textAlign: "left",
+                  fontWeight: "600",
+                  color: "#374151",
+                  borderBottom: "1px solid #e5e7eb",
+                  backgroundColor: "#f9fafb",
+                }}
+              >
+                Status
+              </th>
+              <th
+                style={{
+                  padding: "12px 16px",
+                  textAlign: "center",
+                  fontWeight: "600",
+                  color: "#374151",
+                  borderBottom: "1px solid #e5e7eb",
+                  backgroundColor: "#f9fafb",
+                }}
+              >
+                Action
+              </th>
+            </tr>
+          </thead>
+
+          <tbody style={{ display: "table-row-group" }}>
+            {requests.map((request, index) => {
+              const ownerName = `${request.owner?.owner_fname || ""} ${
+                request.owner?.owner_lname || ""
+              }`.trim();
+              const bcNumber =
+                request.birthcertificate?.bc_number ||
+                request.bc_number ||
+                "N/A";
+              const requestDate = formatDate(request.req_date);
+              const issueDate = formatDate(
+                request.birthcertificate?.bc_issue_date
+              );
+              const status = request.status?.status_current || "Unknown";
+
+              return (
+                <tr
+                  key={request.req_id}
+                  style={{
+                    transition: "background-color 0.2s ease",
+                    borderBottom:
+                      index < requests.length - 1
+                        ? "1px solid #f3f4f6"
+                        : "none",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#f9fafb";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                  }}
+                >
+                  <td
+                    style={{
+                      padding: "12px 16px",
+                      color: "#374151",
+                      fontWeight: "500",
+                    }}
+                  >
+                    {ownerName || "N/A"}
+                  </td>
+
+                  <td
+                    style={{
+                      padding: "12px 16px",
+                      color: "#374151",
+                      fontFamily: "monospace",
+                      fontSize: "13px",
+                    }}
+                  >
+                    {bcNumber}
+                  </td>
+
+                  <td
+                    style={{
+                      padding: "12px 16px",
+                      color: "#374151",
+                    }}
+                  >
+                    {requestDate}
+                  </td>
+
+                  <td
+                    style={{
+                      padding: "12px 16px",
+                      color: "#374151",
+                    }}
+                  >
+                    {issueDate}
+                  </td>
+
+                  <td
+                    style={{
+                      padding: "12px 16px",
+                      color: "#374151",
+                    }}
+                  >
+                    {getStatusBadge(status)}
+                  </td>
+
+                  <td
+                    style={{
+                      padding: "12px 16px",
+                      textAlign: "center",
+                    }}
+                  >
+                    <button
+                      onClick={() => handleDownloadClick(request.req_id)}
+                      style={{
+                        backgroundColor: "#2563eb",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "4px",
+                        padding: "6px 12px",
+                        fontSize: "12px",
+                        fontWeight: "500",
+                        cursor: "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        transition: "background-color 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.backgroundColor = "#1d4ed8";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = "#2563eb";
+                      }}
+                    >
+                      <IoIcons.IoIosDownload size={14} />
+                      Download
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Summary Footer */}
+      <div
+        style={{
+          marginTop: "16px",
+          padding: "12px 16px",
+          backgroundColor: "#f9fafb",
+          borderRadius: "4px",
+          fontSize: "14px",
+          color: "#6b7280",
+        }}
+      >
+        Showing {requests.length} approved/completed request
+        {requests.length !== 1 ? "s" : ""}
       </div>
     </div>
   );

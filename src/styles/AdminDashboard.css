@@ -198,9 +198,11 @@
   font-size: 36px;
   font-weight: 700;
   line-height: 1;
+  color: white;
 }
 
 .stat-title {
+  color: white;
   font-size: 13px;
   margin-bottom: 10px;
   opacity: 0.9;

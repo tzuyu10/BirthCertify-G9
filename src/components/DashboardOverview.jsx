@@ -62,7 +62,7 @@ const mockActivities = [
   },
 ];
 
-// Custom label component for pie chart
+// Custom label component for pie chart with smart visibility
 const CustomLabel = ({
   cx,
   cy,
@@ -71,7 +71,23 @@ const CustomLabel = ({
   outerRadius,
   value,
   name,
+  percent,
+  data,
 }) => {
+  // Don't render label if value is 0 or percentage is too small (less than 5%)
+  if (value === 0 || percent < 0.05) {
+    return null;
+  }
+
+  // Calculate total to determine if this slice is significant enough to show
+  const total = data.reduce((sum, item) => sum + item.value, 0);
+  const slicePercentage = (value / total) * 100;
+
+  // Hide labels for slices smaller than 8% to prevent overcrowding
+  if (slicePercentage < 8) {
+    return null;
+  }
+
   const RADIAN = Math.PI / 180;
   const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
@@ -111,11 +127,17 @@ const CustomLabel = ({
 };
 
 const DashboardOverview = ({ stats }) => {
+  // Filter out zero values and create pie data
   const pieData = [
     { name: "Completed", value: stats.approvedRequests, color: "#28a745" },
     { name: "Pending", value: stats.pendingRequests, color: "#ffc107" },
     { name: "Rejected", value: stats.rejectedRequests, color: "#dc3545" },
-  ];
+  ].filter((item) => item.value > 0); // Only show slices with values greater than 0
+
+  // Custom label function that passes the full data array
+  const renderCustomLabel = (props) => {
+    return <CustomLabel {...props} data={pieData} />;
+  };
 
   return (
     <>
@@ -205,43 +227,69 @@ const DashboardOverview = ({ stats }) => {
                 background: "white",
               }}
             >
-              <ResponsiveContainer width="100%" height={350}>
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={5}
-                    dataKey="value"
-                    label={CustomLabel}
-                    labelLine={false}
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value, name) => [value, name]}
-                    labelFormatter={() => ""}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="chart-legend">
-                <div className="legend-item">
-                  <span className="legend-color completed"></span>
-                  <span>Completed Request</span>
+              {pieData.length > 0 ? (
+                <>
+                  <ResponsiveContainer width="100%" height={350}>
+                    <PieChart>
+                      <Pie
+                        data={pieData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={100}
+                        paddingAngle={5}
+                        dataKey="value"
+                        label={renderCustomLabel}
+                        labelLine={false}
+                      >
+                        {pieData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(value, name) => [value, name]}
+                        labelFormatter={() => ""}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="chart-legend">
+                    {/* Show legend items only for data that exists */}
+                    {stats.approvedRequests > 0 && (
+                      <div className="legend-item">
+                        <span className="legend-color completed"></span>
+                        <span>
+                          Completed Request ({stats.approvedRequests})
+                        </span>
+                      </div>
+                    )}
+                    {stats.pendingRequests > 0 && (
+                      <div className="legend-item">
+                        <span className="legend-color pending"></span>
+                        <span>Pending Request ({stats.pendingRequests})</span>
+                      </div>
+                    )}
+                    {stats.rejectedRequests > 0 && (
+                      <div className="legend-item">
+                        <span className="legend-color rejected"></span>
+                        <span>Rejected Request ({stats.rejectedRequests})</span>
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: "350px",
+                    color: "#666",
+                    fontSize: "16px",
+                  }}
+                >
+                  No data available to display
                 </div>
-                <div className="legend-item">
-                  <span className="legend-color pending"></span>
-                  <span>Pending Request</span>
-                </div>
-                <div className="legend-item">
-                  <span className="legend-color rejected"></span>
-                  <span>Rejected Request</span>
-                </div>
-              </div>
+              )}
             </div>
           </div>
 
