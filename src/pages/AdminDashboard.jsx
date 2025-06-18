@@ -19,6 +19,7 @@ function AdminDashboard() {
     rejectedRequests: 0,
   });
   const [lastRefresh, setLastRefresh] = useState(null);
+  const [allRequestsData, setAllRequestsData] = useState([]); // Store all requests data
 
   // Enhanced data fetching with better error handling for admin
   const fetchAdminDashboardData = async () => {
@@ -80,10 +81,14 @@ function AdminDashboard() {
           
           return {
             ...req,
-            status: statusData?.[0] || { status_current: 'pending' }
+            status: statusData?.[0] || { status_current: 'pending' },
+            status_current: currentStatus // Add this for easier access
           };
         })
       );
+
+      // Store all requests data for DashboardOverview
+      setAllRequestsData(requestsWithStatus);
 
       // Calculate admin stats for all requests
       const totalRequests = requestsWithStatus.length;
@@ -298,11 +303,18 @@ function AdminDashboard() {
       </aside>
 
       <main className="dashboard-main">
-        {activeTab === "dashboard" && <DashboardOverview stats={stats} />}
+        {activeTab === "dashboard" && (
+          <DashboardOverview 
+            stats={stats} 
+            allRequestsData={allRequestsData}
+            isAdminView={true}
+            onRefresh={handleManualRefresh}
+          />
+        )}
 
         {activeTab === "requests" && (
           <ManageRequests />
-)}  
+        )}  
       </main>
     </div>
   );
