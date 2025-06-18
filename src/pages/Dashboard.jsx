@@ -4,7 +4,6 @@ import Navbar from "../components/Navbar";
 import StatsCards from "../components/DashboardStatCard";
 import NotificationBox from "../components/Notifications";
 import DownloadBox from "../components/DownloadBox";
-import PastRequests from "../components/PastRequests";
 import { supabase } from '../../supabase';
 import "../styles/Dashboard.css";
 import * as IoIcons from 'react-icons/io';
@@ -14,7 +13,6 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [stats, setStats] = useState({ pending: 0, completed: 0, rejected: 0 });
   const [notifications, setNotifications] = useState([]);
-  const [pastRequests, setPastRequests] = useState([]);
   const [downloadFile, setDownloadFile] = useState("");
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -121,10 +119,10 @@ const Dashboard = () => {
       console.log('📈 Stats calculated:', { pending, completed, rejected });
       setStats({ pending, completed, rejected });
 
-      // Set past requests
+      // Generate notifications
       const recentRequests = requestsWithStatus
         .filter(req => !req.is_draft)
-        .slice(0, 10)
+        .slice(0, 4)
         .map(req => ({
           id: req.req_id,
           status: req.status?.status_current || 'pending',
@@ -133,11 +131,7 @@ const Dashboard = () => {
           name: `${req.req_fname || ''} ${req.req_lname || ''}`.trim()
         }));
 
-      setPastRequests(recentRequests);
-
-      // Generate notifications
       const recentNotifications = recentRequests
-        .slice(0, 4)
         .map(req => `Request #${req.id} is ${req.status}`)
         .reverse();
 
@@ -359,7 +353,7 @@ const Dashboard = () => {
         <div className="dashboard-body">
           <div className="left-column">
             <StatsCards stats={stats} />
-            <PastRequests requests={pastRequests} />
+            <DownloadBox fileName={downloadFile} />
           </div>
           <div className="right-column">
             <button className="btn-primary" onClick={handleCreateNewRequest}>
@@ -370,7 +364,6 @@ const Dashboard = () => {
             </button>
 
             <NotificationBox notifications={notifications} />
-            <DownloadBox fileName={downloadFile} />
           </div>
         </div>
       </div>

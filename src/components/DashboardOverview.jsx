@@ -682,6 +682,7 @@ const DashboardOverview = ({
           cursor: pointer;
           font-size: 13px;
           transition: all 0.2s;
+          color: black;
         }
 
         .filter-tab.active {
@@ -692,6 +693,7 @@ const DashboardOverview = ({
 
         .filter-tab:hover:not(.active) {
           background: #e0e0e0;
+          color: black;
         }
 
         .search-box {
@@ -765,6 +767,7 @@ const DashboardOverview = ({
           background: #4CAF50;
           color: white;
           padding: 2px 8px;
+          margin-right: 8px;
           border-radius: 12px;
           font-size: 11px;
           font-weight: bold;
