@@ -7,6 +7,7 @@ import '../styles/SignUp.css'
 const SignUp = () => {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
+  const [contact, setContact] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
@@ -21,7 +22,7 @@ const SignUp = () => {
     setIsLoading(true)
 
     try {
-      const { error } = await signUp(email, password, { firstName, lastName })
+      const { error } = await signUp(email, password, { firstName, lastName, contact })
       if (error) throw error
       setMessage('Check your email for verification link!')
     } catch (error) {
@@ -96,6 +97,19 @@ const SignUp = () => {
                   disabled={isLoading}
                 />
               </div>
+            </div>
+
+            <div className="signup-input-box">
+              <label htmlFor="contact">Contact Number</label>
+              <input
+                id="contact"
+                type="tel"
+                placeholder="Enter your contact number"
+                value={contact}
+                onChange={(e) => setContact(e.target.value)}
+                required
+                disabled={isLoading}
+              />
             </div>
             
             <div className="signup-input-box">
