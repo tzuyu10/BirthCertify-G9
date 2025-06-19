@@ -5,6 +5,8 @@ import { useUserRole } from '../hooks/useUserRole'
 import '../styles/SignUp.css'
 
 const SignUp = () => {
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
@@ -19,7 +21,7 @@ const SignUp = () => {
     setIsLoading(true)
 
     try {
-      const { error } = await signUp(email, password)
+      const { error } = await signUp(email, password, { firstName, lastName })
       if (error) throw error
       setMessage('Check your email for verification link!')
     } catch (error) {
@@ -68,6 +70,32 @@ const SignUp = () => {
           )}
           
           <form onSubmit={handleSubmit} className="signup-form">
+            <div className="signup-input-box">
+              <label htmlFor="firstName">First Name</label>
+              <input
+                id="firstName"
+                type="text"
+                placeholder="Enter your first name"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                required
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="signup-input-box">
+              <label htmlFor="lastName">Last Name</label>
+              <input
+                id="lastName"
+                type="text"
+                placeholder="Enter your last name"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                required
+                disabled={isLoading}
+              />
+            </div>
+            
             <div className="signup-input-box">
               <label htmlFor="email">Email</label>
               <input
