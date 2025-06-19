@@ -4,6 +4,12 @@ import { supabase } from "../../supabase";
 import DashboardOverview from "../components/DashboardOverview";
 import ManageRequests from "../pages/ManageRequests";
 import "../styles/AdminDashboard.css";
+import { 
+  IoBarChartSharp, 
+  IoPeopleSharp, 
+  IoRefreshCircleSharp, 
+  IoExitSharp
+} from 'react-icons/io5';
 
 function AdminDashboard() {
   const { signOut, user: currentUser } = useAuth();
@@ -19,7 +25,12 @@ function AdminDashboard() {
     rejectedRequests: 0,
   });
   const [lastRefresh, setLastRefresh] = useState(null);
-  const [allRequestsData, setAllRequestsData] = useState([]); // Store all requests data
+  const [allRequestsData, setAllRequestsData] = useState([]);
+  
+  // Fix the initials calculation
+  const initials = currentUser?.user_metadata?.full_name?.split(" ")
+    .map(name => name[0])
+    .join("") || currentUser?.email?.[0]?.toUpperCase() || 'A';
 
   // Enhanced data fetching with better error handling for admin
   const fetchAdminDashboardData = async () => {
@@ -257,7 +268,7 @@ function AdminDashboard() {
     <div className="admin-dashboard">
       <aside className="sidebar">
         <div className="profile">
-          <div className="profile-icon">👤</div>
+          <div className="profile-icon">{initials}</div>
           <div className="email">
             {currentUser?.email || "procamail@gmail.com"}
           </div>
@@ -276,14 +287,14 @@ function AdminDashboard() {
               }`}
               onClick={() => setActiveTab("dashboard")}
             >
-              <span className="nav-item-icon">📊</span>
+              <span className="nav-item-icon"><IoBarChartSharp /></span>
               Dashboard
             </li>
             <li
               className={`nav-item ${activeTab === "requests" ? "active" : ""}`}
               onClick={() => setActiveTab("requests")}
             >
-              <span className="nav-item-icon">👥</span>
+              <span className="nav-item-icon"><IoPeopleSharp /></span>
               Manage Request
             </li>
             <li 
@@ -291,12 +302,12 @@ function AdminDashboard() {
               onClick={handleManualRefresh}
               style={{ cursor: 'pointer' }}
             >
-              <span className="nav-item-icon">🔄</span>
+              <span className="nav-item-icon"><IoRefreshCircleSharp /></span>
               {loading ? 'Refreshing...' : 'Refresh Data'}
             </li>
             <li className="nav-item signout-link" onClick={signOut}>
-              <span className="nav-item-icon">🚪</span>
-              Sign out
+              <span className="nav-item-icon"><IoExitSharp /></span>
+            Sign out
             </li>
           </ul>
         </nav>

@@ -11,6 +11,7 @@ import TermsOverlay from "../components/TermsOverlay"
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [isNavigating, setIsNavigating] = useState(false);
   const [stats, setStats] = useState({ pending: 0, completed: 0, rejected: 0 });
   const [notifications, setNotifications] = useState([]);
   const [downloadFile, setDownloadFile] = useState("");
@@ -37,13 +38,27 @@ const Dashboard = () => {
   };
 
   // Handle terms decline
-  const handleTermsDecline = () => {
+  const handleTermsDecline = async () => {
     console.log('❌ Terms declined, redirecting to home');
-    navigate('/');
+    setIsNavigating(true); // Set flag to prevent further operations
+    setShowTerms(false);
+    
+    // Clear the user's terms acceptance from localStorage to prevent re-showing
+    if (user) {
+      localStorage.removeItem(`termsAccepted_${user.id}`);
+    }
+      
+    // Sign out the user to prevent re-authentication
+    await supabase.auth.signOut();
+    
+    // Force a complete page reload to ensure clean navigation
+    window.location.href = '/';
   };
 
   // Enhanced data fetching with better error handling
   const fetchDashboardData = async () => {
+    if (isNavigating) return; // Exit early if navigating away
+    
     try {
       setLoading(true);
       setError(null);
@@ -57,12 +72,26 @@ const Dashboard = () => {
       }
 
       if (!currentUser) {
-        navigate('/login');
+        console.log('❌ No authenticated user, redirecting to login');
+        if (!isNavigating) {
+          navigate('/login');
+        }
         return;
       }
 
-      setUser(currentUser);
-      console.log('👤 Current user:', currentUser.id);
+      // Check if terms were declined (user signed out due to terms decline)
+      const authSession = await supabase.auth.getSession();
+      if (!authSession.data.session) {
+        if (!isNavigating) {
+          navigate('/');
+        }
+        return;
+      }
+
+      if (!isNavigating) {
+        setUser(currentUser);
+        console.log('👤 Current user:', currentUser.id);
+      }
 
       // Get all requests for the user
       const { data: requests, error: requestsError } = await supabase
@@ -80,6 +109,8 @@ const Dashboard = () => {
       // Get status for each request
       const requestsWithStatus = await Promise.all(
         (requests || []).map(async (req) => {
+          if (isNavigating) return req; // Exit early if navigating
+          
           const { data: statusData, error: statusError } = await supabase
             .from('status')
             .select('*')
@@ -101,6 +132,8 @@ const Dashboard = () => {
         })
       );
 
+      if (isNavigating) return; // Exit if navigating
+
       // Calculate stats
       const pending = requestsWithStatus.filter(req => 
         req.status?.status_current === 'pending'
@@ -117,7 +150,10 @@ const Dashboard = () => {
       ).length;
 
       console.log('📈 Stats calculated:', { pending, completed, rejected });
-      setStats({ pending, completed, rejected });
+      
+      if (!isNavigating) {
+        setStats({ pending, completed, rejected });
+      }
 
       // Generate notifications
       const recentRequests = requestsWithStatus
@@ -135,7 +171,9 @@ const Dashboard = () => {
         .map(req => `Request #${req.id} is ${req.status}`)
         .reverse();
 
-      setNotifications(recentNotifications);
+      if (!isNavigating) {
+        setNotifications(recentNotifications);
+      }
 
       // Set download file
       const completedRequest = requestsWithStatus.find(req => 
@@ -143,29 +181,37 @@ const Dashboard = () => {
         req.status?.status_current === 'approved'
       );
       
-      if (completedRequest) {
+      if (completedRequest && !isNavigating) {
         setDownloadFile(`Payment Voucher - Request #${completedRequest.req_id}`);
       }
 
-      setLastRefresh(new Date().toLocaleTimeString());
-      console.log('✅ Dashboard data updated successfully');
+      if (!isNavigating) {
+        setLastRefresh(new Date().toLocaleTimeString());
+        console.log('✅ Dashboard data updated successfully');
+      }
 
     } catch (err) {
       console.error('❌ Error fetching dashboard data:', err);
-      setError(err.message);
+      if (!isNavigating) {
+        setError(err.message);
+      }
     } finally {
-      setLoading(false);
+      if (!isNavigating) {
+        setLoading(false);
+      }
     }
   };
 
   // Initial data fetch
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    if (!isNavigating) {
+      fetchDashboardData();
+    }
+  }, [isNavigating]);
 
   // Check and show terms overlay when user is loaded
   useEffect(() => {
-    if (user && !loading) {
+    if (user && !loading && !isNavigating) {
       const hasAcceptedTerms = checkTermsAcceptance();
       console.log('📋 Terms acceptance status:', hasAcceptedTerms);
       
@@ -173,11 +219,11 @@ const Dashboard = () => {
         setShowTerms(true);
       }
     }
-  }, [user, loading]);
+  }, [user, loading, isNavigating]);
 
   // Enhanced real-time subscription with better debugging
   useEffect(() => {
-    if (!user) return;
+    if (!user || isNavigating) return;
 
     console.log('🔔 Setting up real-time subscriptions for user:', user.id);
 
@@ -191,8 +237,10 @@ const Dashboard = () => {
           table: 'status' 
         },
         (payload) => {
-          console.log('🔄 Status table changed:', payload);
-          fetchDashboardData();
+          if (!isNavigating) {
+            console.log('🔄 Status table changed:', payload);
+            fetchDashboardData();
+          }
         }
       )
       .subscribe((status) => {
@@ -210,8 +258,10 @@ const Dashboard = () => {
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('🔄 Requester table changed:', payload);
-          fetchDashboardData();
+          if (!isNavigating) {
+            console.log('🔄 Requester table changed:', payload);
+            fetchDashboardData();
+          }
         }
       )
       .subscribe((status) => {
@@ -223,33 +273,43 @@ const Dashboard = () => {
       statusSubscription.unsubscribe();
       requesterSubscription.unsubscribe();
     };
-  }, [user]);
+  }, [user, isNavigating]);
 
   // Auto-refresh as backup (every 60 seconds)
   useEffect(() => {
+    if (isNavigating) return;
+    
     const interval = setInterval(() => {
-      console.log('⏰ Auto-refresh triggered');
-      fetchDashboardData();
+      if (!isNavigating) {
+        console.log('⏰ Auto-refresh triggered');
+        fetchDashboardData();
+      }
     }, 60000);
     
     return () => clearInterval(interval);
-  }, []);
+  }, [isNavigating]);
 
   const handleCreateNewRequest = () => {
-    navigate('/request');
+    if (!isNavigating) {
+      navigate('/request');
+    }
   };
 
   const handleViewDrafts = () => {
-    navigate('/drafts');
+    if (!isNavigating) {
+      navigate('/drafts');
+    }
   };
 
   const handleManualRefresh = () => {
-    console.log('🔄 Manual refresh triggered');
-    fetchDashboardData();
+    if (!isNavigating) {
+      console.log('🔄 Manual refresh triggered');
+      fetchDashboardData();
+    }
   };
 
   // Show loading state
-  if (loading) {
+  if (loading && !isNavigating) {
     return (
       <div className="main-div">
         <Navbar />
@@ -269,7 +329,7 @@ const Dashboard = () => {
   }
 
   // Show error state
-  if (error) {
+  if (error && !isNavigating) {
     return (
       <div className="main-div">
         <Navbar />
@@ -302,6 +362,11 @@ const Dashboard = () => {
         </div>
       </div>
     );
+  }
+
+  // Don't render anything if navigating
+  if (isNavigating) {
+    return null;
   }
 
   return (
