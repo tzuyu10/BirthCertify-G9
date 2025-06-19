@@ -1,4 +1,13 @@
 /* SignUp page specific styles - rename createStyle.css to signupStyle.css */
+.signup-name-row {
+  display: flex;
+  gap: 1rem; /* Adjust the gap between fields as needed */
+}
+
+.signup-name-row .signup-input-box {
+  flex: 1; /* Makes both fields take equal width */
+}
+
 
 .signup-page {
     min-height: 100vh;
