@@ -8,6 +8,89 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Helper function to get and merge user profile data
+  const getUserWithProfile = async (authUser, isGoogleOAuth = false) => {
+    if (!authUser) return null;
+    
+    console.log('👤 getUserWithProfile: Fetching profile for user:', authUser.id, 'isGoogleOAuth:', isGoogleOAuth);
+    try {
+      const { data: profile, error } = await supabase
+        .from('user')
+        .select('*')
+        .eq('user_id', authUser.id)
+        .single();
+      
+      if (error) {
+        console.error('❌ getUserWithProfile: Error fetching profile:', error);
+        // Return auth user even if profile fetch fails
+        return authUser;
+      }
+      
+      // For Google OAuth, we want to update profile with auth metadata
+      // For regular email signup, we want to preserve existing profile data
+      let mergedUser;
+      
+      if (isGoogleOAuth && authUser.user_metadata) {
+        // Google OAuth: Update profile with auth metadata
+        const updateData = {};
+        if (authUser.user_metadata.first_name && !profile.fname) {
+          updateData.fname = authUser.user_metadata.first_name;
+        }
+        if (authUser.user_metadata.last_name && !profile.lname) {
+          updateData.lname = authUser.user_metadata.last_name;
+        }
+        if (authUser.user_metadata.full_name && !profile.fname && !profile.lname) {
+          // Handle full_name if first/last names aren't available
+          const nameParts = authUser.user_metadata.full_name.split(' ');
+          updateData.fname = nameParts[0];
+          updateData.lname = nameParts.slice(1).join(' ') || '';
+        }
+        
+        // Update the profile in database if we have new data
+        if (Object.keys(updateData).length > 0) {
+          console.log('🔄 getUserWithProfile: Updating profile with Google data:', updateData);
+          const { data: updatedProfile, error: updateError } = await supabase
+            .from('user')
+            .update(updateData)
+            .eq('user_id', authUser.id)
+            .select()
+            .single();
+          
+          if (!updateError && updatedProfile) {
+            profile.fname = updatedProfile.fname;
+            profile.lname = updatedProfile.lname;
+          }
+        }
+      }
+      
+      // Merge auth user data with profile data, preserving existing profile values
+      mergedUser = {
+        ...authUser,
+        // Add profile data, keeping existing values
+        fname: profile.fname,
+        lname: profile.lname,
+        contact: profile.contact,
+        role: profile.role,
+        creationdate: profile.creationdate,
+        // Keep all original auth properties
+      };
+      
+      console.log('✅ getUserWithProfile: Profile merged:', {
+        userId: mergedUser.id,
+        email: mergedUser.email,
+        fname: mergedUser.fname,
+        lname: mergedUser.lname,
+        contact: mergedUser.contact,
+        preservedExistingData: !isGoogleOAuth
+      });
+      
+      return mergedUser;
+    } catch (error) {
+      console.error('💥 getUserWithProfile: Unexpected error:', error);
+      return authUser; // Fallback to auth user
+    }
+  };
+
   useEffect(() => {
     console.log('🔍 AuthProvider: useEffect started');
     
@@ -41,8 +124,11 @@ export const AuthProvider = ({ children }) => {
           userId: sessionUser?.id,
           email: sessionUser?.email
         });
-        setUser(sessionUser);
-        saveToSession(sessionUser);
+        
+        // Get user with profile data
+        const userWithProfile = await getUserWithProfile(sessionUser, false);
+        setUser(userWithProfile);
+        saveToSession(userWithProfile);
         setLoading(false);
       } catch (error) {
         console.error('❌ AuthProvider: Error getting session:', error);
@@ -60,9 +146,23 @@ export const AuthProvider = ({ children }) => {
           userId: session?.user?.id,
           email: session?.user?.email
         });
+        
         const sessionUser = session?.user ?? null;
-        setUser(sessionUser);
-        saveToSession(sessionUser);
+        
+        // Determine if this is a Google OAuth sign-in
+        const isGoogleOAuth = event === 'SIGNED_IN' && 
+          sessionUser?.app_metadata?.provider === 'google';
+        
+        console.log('🔍 AuthProvider: Detected OAuth provider:', {
+          event,
+          provider: sessionUser?.app_metadata?.provider,
+          isGoogleOAuth
+        });
+        
+        // Get user with profile data
+        const userWithProfile = await getUserWithProfile(sessionUser, isGoogleOAuth);
+        setUser(userWithProfile);
+        saveToSession(userWithProfile);
         setLoading(false);
       }
     );
@@ -363,6 +463,13 @@ export const AuthProvider = ({ children }) => {
         console.error('❌ UpdateUserProfile: Error updating profile:', error);
       } else {
         console.log('✅ UpdateUserProfile: Profile updated successfully:', data);
+        
+        // Update the current user state with new profile data
+        if (user) {
+          const updatedUser = { ...user, ...data };
+          setUser(updatedUser);
+          sessionStorage.setItem('user', JSON.stringify(updatedUser));
+        }
       }
     
       return { data, error };
@@ -387,6 +494,8 @@ export const AuthProvider = ({ children }) => {
     hasUser: !!user,
     userId: user?.id,
     email: user?.email,
+    fname: user?.fname,
+    lname: user?.lname,
     loading
   });
 
