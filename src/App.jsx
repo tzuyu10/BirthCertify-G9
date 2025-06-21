@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -15,19 +15,23 @@ import { OwnerProvider } from "./contexts/OwnerContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleBasedRedirect from "./components/RoleBasedRedirect";
 
-// Pages
+// Pages (regular imports)
 import LandingPage from "./pages/LandingPage";
-import SignUp from "./pages/Signup";
+import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
-import Help from "./pages/Help";
 import Request from "./pages/Request";
 import Unauthorized from "./components/Unauthorized";
 import Owner from "./pages/OwnerInfo";
 import MyDraftsPage from "./components/MyDrafts";
 import InvoiceViewer from "./components/InvoiceViewer";
-import DownloadBox from "./components/DownloadBox"; // ✅ Newly added
+import DownloadBox from "./components/DownloadBox"; 
+import ResetPasswordForm from './components/ResetPasswordForm';
+import ResetPasswordPage from './pages/ResetPasswordPage';
+
+// Lazy loaded component
+const Help = React.lazy(() => import("./pages/Help"));
 
 // Loading Spinner
 const LoadingSpinner = () => (
@@ -62,6 +66,31 @@ const LoadingSpinner = () => (
   </div>
 );
 
+// Smaller loading component for lazy-loaded components
+const LazyLoadSpinner = () => (
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      height: "200px",
+      color: "#666",
+    }}
+  >
+    <div
+      style={{
+        border: "2px solid #f3f3f3",
+        borderTop: "2px solid #3498db",
+        borderRadius: "50%",
+        width: "24px",
+        height: "24px",
+        animation: "spin 1s linear infinite",
+      }}
+    ></div>
+    <span style={{ marginLeft: "10px" }}>Loading...</span>
+  </div>
+);
+
 // Default route logic for logged-in users
 const AuthenticatedHome = () => <RoleBasedRedirect />;
 
@@ -78,6 +107,8 @@ function AppRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
+        <Route path="/reset-password-form" element={<ResetPasswordForm />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
@@ -143,7 +174,9 @@ function AppRoutes() {
         path="/help"
         element={
           <ProtectedRoute>
-            <Help />
+            <Suspense fallback={<LazyLoadSpinner />}>
+              <Help />
+            </Suspense>
           </ProtectedRoute>
         }
       />
@@ -165,6 +198,10 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
+      {/* ADD THESE ROUTES FOR AUTHENTICATED USERS */}
+      <Route path="/reset-password-form" element={<ResetPasswordForm />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
 
       <Route path="/unauthorized" element={<Unauthorized />} />
       <Route path="*" element={<Navigate to="/" replace />} />

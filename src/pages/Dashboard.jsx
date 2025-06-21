@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import StatsCards from "../components/DashboardStatCard";
@@ -12,52 +12,86 @@ import TermsOverlay from "../components/TermsOverlay"
 const Dashboard = () => {
   const navigate = useNavigate();
   const [isNavigating, setIsNavigating] = useState(false);
-  const [stats, setStats] = useState({ pending: 0, completed: 0, rejected: 0 });
-  const [notifications, setNotifications] = useState([]);
-  const [downloadFile, setDownloadFile] = useState("");
+  const [requestsData, setRequestsData] = useState([]);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [lastRefresh, setLastRefresh] = useState(null);
   const [showTerms, setShowTerms] = useState(false);
 
+  // Memoize calculated stats to prevent unnecessary recalculations
+  const stats = useMemo(() => {
+    const pending = requestsData.filter(req => 
+      req.status_current === 'pending'
+    ).length;
+    
+    const completed = requestsData.filter(req => 
+      req.status_current === 'completed' || 
+      req.status_current === 'approved'
+    ).length;
+    
+    const rejected = requestsData.filter(req => 
+      req.status_current === 'cancelled' ||
+      req.status_current === 'rejected'
+    ).length;
+
+    return { pending, completed, rejected };
+  }, [requestsData]);
+
+  // Memoize notifications to prevent unnecessary recalculations
+  const notifications = useMemo(() => {
+    const recentRequests = requestsData
+      .filter(req => !req.is_draft)
+      .slice(0, 4)
+      .map(req => `Request #${req.req_id} is ${req.status_current || 'pending'}`)
+      .reverse();
+    
+    return recentRequests;
+  }, [requestsData]);
+
+  // Memoize download file
+  const downloadFile = useMemo(() => {
+    const completedRequest = requestsData.find(req => 
+      req.status_current === 'completed' || 
+      req.status_current === 'approved'
+    );
+    
+    return completedRequest ? `Payment Voucher - Request #${completedRequest.req_id}` : "";
+  }, [requestsData]);
+
   // Enhanced terms acceptance check
-  const checkTermsAcceptance = () => {
+  const checkTermsAcceptance = useCallback(() => {
     if (!user) return false;
     const termsAccepted = localStorage.getItem(`termsAccepted_${user.id}`);
     return termsAccepted === 'true';
-  };
+  }, [user]);
 
   // Handle terms acceptance
-  const handleTermsAccept = () => {
+  const handleTermsAccept = useCallback(() => {
     if (user) {
       localStorage.setItem(`termsAccepted_${user.id}`, 'true');
       console.log('✅ Terms accepted for user:', user.id);
     }
     setShowTerms(false);
-  };
+  }, [user]);
 
   // Handle terms decline
-  const handleTermsDecline = async () => {
+  const handleTermsDecline = useCallback(async () => {
     console.log('❌ Terms declined, redirecting to home');
-    setIsNavigating(true); // Set flag to prevent further operations
+    setIsNavigating(true);
     setShowTerms(false);
     
-    // Clear the user's terms acceptance from localStorage to prevent re-showing
     if (user) {
       localStorage.removeItem(`termsAccepted_${user.id}`);
     }
       
-    // Sign out the user to prevent re-authentication
     await supabase.auth.signOut();
-    
-    // Force a complete page reload to ensure clean navigation
     window.location.href = '/';
-  };
+  }, [user]);
 
-  // Enhanced data fetching with better error handling
-  const fetchDashboardData = async () => {
-    if (isNavigating) return; // Exit early if navigating away
+  // OPTIMIZED: Using the latest_request_status view to avoid relationship ambiguity
+  const fetchDashboardData = useCallback(async () => {
+    if (isNavigating) return;
     
     try {
       setLoading(true);
@@ -79,7 +113,7 @@ const Dashboard = () => {
         return;
       }
 
-      // Check if terms were declined (user signed out due to terms decline)
+      // Check if terms were declined
       const authSession = await supabase.auth.getSession();
       if (!authSession.data.session) {
         if (!isNavigating) {
@@ -93,10 +127,17 @@ const Dashboard = () => {
         console.log('👤 Current user:', currentUser.id);
       }
 
-      // Get all requests for the user
-      const { data: requests, error: requestsError } = await supabase
+      // OPTIMIZED: Using the latest_request_status view to get requests with their latest status
+      // This eliminates the relationship ambiguity error
+      const { data: requestsWithStatus, error: requestsError } = await supabase
         .from('requester')
-        .select('*')
+        .select(`
+          *,
+          latest_request_status!inner(
+            status_current,
+            status_update_date
+          )
+        `)
         .eq('user_id', currentUser.id)
         .order('req_date', { ascending: false });
 
@@ -104,88 +145,18 @@ const Dashboard = () => {
         throw new Error(`Database error: ${requestsError.message}`);
       }
 
-      console.log('📋 Fetched requests:', requests?.length || 0);
+      console.log('📋 Fetched requests with status:', requestsWithStatus?.length || 0);
 
-      // Get status for each request
-      const requestsWithStatus = await Promise.all(
-        (requests || []).map(async (req) => {
-          if (isNavigating) return req; // Exit early if navigating
-          
-          const { data: statusData, error: statusError } = await supabase
-            .from('status')
-            .select('*')
-            .eq('req_id', req.req_id)
-            .order('status_update_date', { ascending: false })
-            .limit(1);
-          
-          if (statusError) {
-            console.warn(`⚠️ Error getting status for request ${req.req_id}:`, statusError);
-          }
+      if (isNavigating) return;
 
-          const currentStatus = statusData?.[0]?.status_current || 'pending';
-          console.log(`📊 Request ${req.req_id} status: ${currentStatus}`);
-          
-          return {
-            ...req,
-            status: statusData?.[0] || { status_current: 'pending' }
-          };
-        })
-      );
-
-      if (isNavigating) return; // Exit if navigating
-
-      // Calculate stats
-      const pending = requestsWithStatus.filter(req => 
-        req.status?.status_current === 'pending'
-      ).length;
-      
-      const completed = requestsWithStatus.filter(req => 
-        req.status?.status_current === 'completed' || 
-        req.status?.status_current === 'approved'
-      ).length;
-      
-      const rejected = requestsWithStatus.filter(req => 
-        req.status?.status_current === 'cancelled'||
-        req.status?.status_current === 'rejected'
-      ).length;
-
-      console.log('📈 Stats calculated:', { pending, completed, rejected });
-      
-      if (!isNavigating) {
-        setStats({ pending, completed, rejected });
-      }
-
-      // Generate notifications
-      const recentRequests = requestsWithStatus
-        .filter(req => !req.is_draft)
-        .slice(0, 4)
-        .map(req => ({
-          id: req.req_id,
-          status: req.status?.status_current || 'pending',
-          date: req.req_date,
-          purpose: req.req_purpose,
-          name: `${req.req_fname || ''} ${req.req_lname || ''}`.trim()
-        }));
-
-      const recentNotifications = recentRequests
-        .map(req => `Request #${req.id} is ${req.status}`)
-        .reverse();
+      // Simplified data processing since the view already gives us the latest status
+      const processedData = (requestsWithStatus || []).map(req => ({
+        ...req,
+        status_current: req.latest_request_status?.status_current || 'pending'
+      }));
 
       if (!isNavigating) {
-        setNotifications(recentNotifications);
-      }
-
-      // Set download file
-      const completedRequest = requestsWithStatus.find(req => 
-        req.status?.status_current === 'completed' || 
-        req.status?.status_current === 'approved'
-      );
-      
-      if (completedRequest && !isNavigating) {
-        setDownloadFile(`Payment Voucher - Request #${completedRequest.req_id}`);
-      }
-
-      if (!isNavigating) {
+        setRequestsData(processedData);
         setLastRefresh(new Date().toLocaleTimeString());
         console.log('✅ Dashboard data updated successfully');
       }
@@ -200,14 +171,14 @@ const Dashboard = () => {
         setLoading(false);
       }
     }
-  };
+  }, [isNavigating, navigate]);
 
   // Initial data fetch
   useEffect(() => {
     if (!isNavigating) {
       fetchDashboardData();
     }
-  }, [isNavigating]);
+  }, [fetchDashboardData, isNavigating]);
 
   // Check and show terms overlay when user is loaded
   useEffect(() => {
@@ -219,17 +190,17 @@ const Dashboard = () => {
         setShowTerms(true);
       }
     }
-  }, [user, loading, isNavigating]);
+  }, [user, loading, isNavigating, checkTermsAcceptance]);
 
-  // Enhanced real-time subscription with better debugging
+  // OPTIMIZED: Single subscription channel for all changes
   useEffect(() => {
     if (!user || isNavigating) return;
 
-    console.log('🔔 Setting up real-time subscriptions for user:', user.id);
+    console.log('🔔 Setting up real-time subscription for user:', user.id);
 
-    // Subscribe to status table changes
-    const statusSubscription = supabase
-      .channel('status-changes')
+    // Use a single channel for all related changes
+    const subscription = supabase
+      .channel('dashboard-updates')
       .on('postgres_changes', 
         { 
           event: '*', 
@@ -238,18 +209,16 @@ const Dashboard = () => {
         },
         (payload) => {
           if (!isNavigating) {
-            console.log('🔄 Status table changed:', payload);
-            fetchDashboardData();
+            console.log('🔄 Status updated:', payload);
+            // Debounce the refresh to avoid multiple calls
+            setTimeout(() => {
+              if (!isNavigating) {
+                fetchDashboardData();
+              }
+            }, 500);
           }
         }
       )
-      .subscribe((status) => {
-        console.log('📡 Status subscription status:', status);
-      });
-
-    // Subscribe to requester table changes (for new requests)
-    const requesterSubscription = supabase
-      .channel('requester-changes')
       .on('postgres_changes', 
         { 
           event: '*', 
@@ -259,54 +228,59 @@ const Dashboard = () => {
         },
         (payload) => {
           if (!isNavigating) {
-            console.log('🔄 Requester table changed:', payload);
-            fetchDashboardData();
+            console.log('🔄 Request updated:', payload);
+            // Debounce the refresh
+            setTimeout(() => {
+              if (!isNavigating) {
+                fetchDashboardData();
+              }
+            }, 500);
           }
         }
       )
       .subscribe((status) => {
-        console.log('📡 Requester subscription status:', status);
+        console.log('📡 Subscription status:', status);
       });
 
     return () => {
       console.log('🔌 Unsubscribing from real-time updates');
-      statusSubscription.unsubscribe();
-      requesterSubscription.unsubscribe();
+      subscription.unsubscribe();
     };
-  }, [user, isNavigating]);
+  }, [user, isNavigating, fetchDashboardData]);
 
-  // Auto-refresh as backup (every 60 seconds)
+  // OPTIMIZED: Reduced auto-refresh frequency and added visibility check
   useEffect(() => {
     if (isNavigating) return;
     
+    // Only auto-refresh if the page is visible
     const interval = setInterval(() => {
-      if (!isNavigating) {
+      if (!isNavigating && !document.hidden) {
         console.log('⏰ Auto-refresh triggered');
         fetchDashboardData();
       }
-    }, 60000);
+    }, 120000); // Every 2 minutes
     
     return () => clearInterval(interval);
-  }, [isNavigating]);
+  }, [isNavigating, fetchDashboardData]);
 
-  const handleCreateNewRequest = () => {
+  const handleCreateNewRequest = useCallback(() => {
     if (!isNavigating) {
       navigate('/request');
     }
-  };
+  }, [isNavigating, navigate]);
 
-  const handleViewDrafts = () => {
+  const handleViewDrafts = useCallback(() => {
     if (!isNavigating) {
       navigate('/drafts');
     }
-  };
+  }, [isNavigating, navigate]);
 
-  const handleManualRefresh = () => {
+  const handleManualRefresh = useCallback(() => {
     if (!isNavigating) {
       console.log('🔄 Manual refresh triggered');
       fetchDashboardData();
     }
-  };
+  }, [isNavigating, fetchDashboardData]);
 
   // Show loading state
   if (loading && !isNavigating) {
@@ -371,7 +345,6 @@ const Dashboard = () => {
 
   return (
     <div className="main-div">
-
       <TermsOverlay
         isVisible={showTerms}
         onAccept={handleTermsAccept}
@@ -395,22 +368,21 @@ const Dashboard = () => {
               </small>
             )}
             <div style={{ marginLeft: '20px', display: 'inline-block' }}>
-            <button 
-              onClick={handleManualRefresh}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#28a745',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
-              disabled={loading}
-            >
-              <IoIcons.IoMdRefresh /> {loading ? 'Refreshing...' : 'Refresh'}
-            </button>
-
+              <button 
+                onClick={handleManualRefresh}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#28a745',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '14px'
+                }}
+                disabled={loading}
+              >
+                <IoIcons.IoMdRefresh /> {loading ? 'Refreshing...' : 'Refresh'}
+              </button>
             </div>
           </div>
         </div>

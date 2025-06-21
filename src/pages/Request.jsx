@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import '../styles/Request.css';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../contexts/AuthContext';
 import { useRequest } from '../contexts/RequestContext';
 import { useNavigate } from 'react-router-dom';
-
 
 function RequestPage() {
   const [formData, setFormData] = useState({
@@ -16,26 +15,65 @@ function RequestPage() {
   });
 
   const [showOtherPurpose, setShowOtherPurpose] = useState(false);
+  const [backgroundLoaded, setBackgroundLoaded] = useState(false);
+  const [backgroundError, setBackgroundError] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const { createRequest } = useRequest();
   const { user: currentUser } = useAuth();
   const navigate = useNavigate();
 
+  // Preload background image with optimization
+  useEffect(() => {
+    const img = new Image();
+    img.onload = () => {
+      setBackgroundLoaded(true);
+      setBackgroundError(false);
+    };
+    img.onerror = () => {
+      setBackgroundLoaded(false);
+      setBackgroundError(true);
+    };
+    
+    // Prioritize most likely paths first
+    const imagePaths = [
+      '/assets/requestBG.png',
+      '/images/requestBG.png',
+      '/requestBG.png',
+      './requestBG.png',
+    ];
+    
+    const tryLoadImage = (index = 0) => {
+      if (index >= imagePaths.length) {
+        setBackgroundError(true);
+        return;
+      }
+      
+      img.src = imagePaths[index];
+      img.onerror = () => tryLoadImage(index + 1);
+    };
+    
+    tryLoadImage();
+  }, []);
 
-  const isFormValid = () => {
+  // Memoize form validation to prevent unnecessary recalculations
+  const isFormValid = useMemo(() => {
     const { Fname, Lname, contact, purpose, specify } = formData;
-    const basicFieldsFilled = Fname.trim() !== '' && Lname.trim() !== '' && contact.trim() !== '' && purpose !== '';
-    return showOtherPurpose ? basicFieldsFilled && specify.trim() !== '' : basicFieldsFilled;
-  };
+    const basicFieldsFilled = Fname.trim() && Lname.trim() && contact.trim() && purpose;
+    return showOtherPurpose ? basicFieldsFilled && specify.trim() : basicFieldsFilled;
+  }, [formData, showOtherPurpose]);
 
-  const handleInputChange = (e) => {
+  // Optimize input change handler with useCallback
+  const handleInputChange = useCallback((e) => {
     const { id, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [id]: value
     }));
-  };
+  }, []);
 
-  const handlePurposeChange = (e) => {
+  // Optimize purpose change handler
+  const handlePurposeChange = useCallback((e) => {
     const value = e.target.value;
     setFormData(prev => ({
       ...prev,
@@ -43,55 +81,73 @@ function RequestPage() {
       specify: value !== 'Other' ? '' : prev.specify
     }));
     setShowOtherPurpose(value === 'Other');
-  };
+  }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!isFormValid()) return;
-  
-    console.log("DEBUG: currentUser =", currentUser);
-    console.log("DEBUG: formData =", formData);
-  
-    const payload = {
-      user_id: currentUser?.id ?? 'undefined',
-      owner_id: null,
-      bc_number: null,
-      status_id: null,
-      req_fname: formData.Fname,
-      req_lname: formData.Lname,
-      req_contact: formData.contact,
-      req_purpose: formData.purpose === 'Other' ? formData.specify : formData.purpose,
-      req_date: new Date().toISOString()
+  // Memoize the request payload to avoid recreating on every render
+  const requestPayload = useMemo(() => {
+    if (!currentUser?.id) return null;
+    
+    return {
+      userId: currentUser.id,
+      ownerId: null,
+      bcNumber: null,
+      statusId: null,
+      firstName: formData.Fname.trim(),
+      lastName: formData.Lname.trim(),
+      contactNumber: formData.contact.trim(),
+      purpose: formData.purpose === 'Other' ? formData.specify.trim() : formData.purpose
     };
-  
-    console.log("Submitting request payload:", payload);
-  
+  }, [currentUser?.id, formData]);
+
+  // Optimized submit handler
+  const handleSubmit = useCallback(async (e) => {
+    e.preventDefault();
+    
+    // Prevent double submission
+    if (!isFormValid || isSubmitting) return;
+    
+    setIsSubmitting(true);
+
     try {
-      await createRequest({
-        userId: currentUser.id,
-        ownerId: null,
-        bcNumber: null,
-        statusId: null,
-        firstName: formData.Fname,
-        lastName: formData.Lname,
-        contactNumber: formData.contact,
-        purpose: formData.purpose === 'Other' ? formData.specify : formData.purpose
-      });
-      alert('Request submitted successfully!');
+      // Use the memoized payload
+      await createRequest(requestPayload);
+      
+      // Reset form state
       setFormData({ Fname: '', Lname: '', contact: '', purpose: '', specify: '' });
       setShowOtherPurpose(false);
-
+      
+      // Navigate immediately after successful submission
       navigate('/owner');
       
+      // Show success message after navigation
+      setTimeout(() => {
+        alert('Request submitted successfully!');
+      }, 100);
+      
     } catch (error) {
+      console.error('Request submission error:', error);
       alert('Failed to submit request. Please try again.');
-      console.error(error);
+    } finally {
+      setIsSubmitting(false);
     }
-  };
-  
+  }, [isFormValid, isSubmitting, createRequest, requestPayload, navigate]);
 
+  // Early return if user is not available
+  if (!currentUser?.id) {
+    return (
+      <div className="request-main-div">
+        <Navbar />
+        <div className="request-page">
+          <div className="request-wrapper">
+            <div className="loading-message">Loading user information...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   return (
-    <div className="request-main-div">
+    <div className={`request-main-div ${backgroundLoaded ? 'background-loaded' : ''} ${backgroundError ? 'background-error' : ''}`}>
       <Navbar />
       <div className="request-page">
         <div className="request-wrapper">
@@ -108,6 +164,7 @@ function RequestPage() {
                   placeholder="Juan"
                   value={formData.Fname}
                   onChange={handleInputChange}
+                  disabled={isSubmitting}
                   required
                 />
               </div>
@@ -120,6 +177,7 @@ function RequestPage() {
                   placeholder="Dela Cruz"
                   value={formData.Lname}
                   onChange={handleInputChange}
+                  disabled={isSubmitting}
                   required
                 />
               </div>
@@ -135,6 +193,7 @@ function RequestPage() {
                 maxLength="13"
                 value={formData.contact}
                 onChange={handleInputChange}
+                disabled={isSubmitting}
                 required
               />
             </div>
@@ -147,6 +206,7 @@ function RequestPage() {
                 className="request-select"
                 value={formData.purpose}
                 onChange={handlePurposeChange}
+                disabled={isSubmitting}
                 required
               >
                 <option value="">Select a purpose</option>
@@ -167,6 +227,7 @@ function RequestPage() {
                     placeholder="Enter purpose here..."
                     value={formData.specify}
                     onChange={handleInputChange}
+                    disabled={isSubmitting}
                     required={showOtherPurpose}
                   />
                 </div>
@@ -176,13 +237,13 @@ function RequestPage() {
             <button
               type="submit"
               className="request-btn"
-              disabled={!isFormValid()}
+              disabled={!isFormValid || isSubmitting}
               style={{
-                opacity: isFormValid() ? 1 : 0.5,
-                cursor: isFormValid() ? 'pointer' : 'not-allowed'
+                opacity: (isFormValid && !isSubmitting) ? 1 : 0.5,
+                cursor: (isFormValid && !isSubmitting) ? 'pointer' : 'not-allowed'
               }}
             >
-              Submit Request
+              {isSubmitting ? 'Submitting...' : 'Submit Request'}
             </button>
           </form>
         </div>

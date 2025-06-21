@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '../../supabase';
 import { useAuth } from './AuthContext';
 
@@ -12,7 +12,9 @@ const initialState = {
     purpose: 'all',
     dateRange: null,
     isDraft: 'all'
-  }
+  },
+  cache: new Map(), // Add caching
+  lastFetchTime: null
 };
 
 const REQUEST_ACTIONS = {
@@ -25,7 +27,9 @@ const REQUEST_ACTIONS = {
   DELETE_REQUEST: 'DELETE_REQUEST',
   SET_CURRENT_REQUEST: 'SET_CURRENT_REQUEST',
   SET_FILTERS: 'SET_FILTERS',
-  CLEAR_CURRENT_REQUEST: 'CLEAR_CURRENT_REQUEST'
+  CLEAR_CURRENT_REQUEST: 'CLEAR_CURRENT_REQUEST',
+  UPDATE_CACHE: 'UPDATE_CACHE',
+  BATCH_UPDATE: 'BATCH_UPDATE'
 };
 
 const requestReducer = (state, action) => {
@@ -37,14 +41,27 @@ const requestReducer = (state, action) => {
     case REQUEST_ACTIONS.CLEAR_ERROR:
       return { ...state, error: null };
     case REQUEST_ACTIONS.SET_REQUESTS:
-      return { ...state, requests: action.payload, loading: false };
+      return { 
+        ...state, 
+        requests: action.payload, 
+        loading: false,
+        lastFetchTime: Date.now()
+      };
     case REQUEST_ACTIONS.ADD_REQUEST:
-      return { ...state, requests: [...state.requests, action.payload], loading: false };
+      return { 
+        ...state, 
+        requests: [action.payload, ...state.requests], // Add to beginning for better UX
+        loading: false 
+      };
     case REQUEST_ACTIONS.UPDATE_REQUEST:
       return {
         ...state,
-        requests: state.requests.map(req => req.req_id === action.payload.req_id ? action.payload : req),
-        currentRequest: state.currentRequest?.req_id === action.payload.req_id ? action.payload : state.currentRequest,
+        requests: state.requests.map(req => 
+          req.req_id === action.payload.req_id ? { ...req, ...action.payload } : req
+        ),
+        currentRequest: state.currentRequest?.req_id === action.payload.req_id 
+          ? { ...state.currentRequest, ...action.payload } 
+          : state.currentRequest,
         loading: false
       };
     case REQUEST_ACTIONS.DELETE_REQUEST:
@@ -60,6 +77,15 @@ const requestReducer = (state, action) => {
       return { ...state, currentRequest: null };
     case REQUEST_ACTIONS.SET_FILTERS:
       return { ...state, filters: { ...state.filters, ...action.payload } };
+    case REQUEST_ACTIONS.UPDATE_CACHE:
+      const newCache = new Map(state.cache);
+      newCache.set(action.payload.key, {
+        data: action.payload.data,
+        timestamp: Date.now()
+      });
+      return { ...state, cache: newCache };
+    case REQUEST_ACTIONS.BATCH_UPDATE:
+      return { ...state, ...action.payload };
     default:
       return state;
   }
@@ -67,114 +93,171 @@ const requestReducer = (state, action) => {
 
 const RequestContext = createContext();
 
+// Cache utilities
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const getCacheKey = (operation, params) => `${operation}_${JSON.stringify(params)}`;
+const isCacheValid = (cacheEntry) => {
+  return cacheEntry && (Date.now() - cacheEntry.timestamp) < CACHE_DURATION;
+};
+
 export const RequestProvider = ({ children }) => {
   const [state, dispatch] = useReducer(requestReducer, initialState);
   const { user: currentUser } = useAuth();
+  const abortControllerRef = useRef(null);
+  const requestQueue = useRef([]);
+  const isProcessingQueue = useRef(false);
 
-  const fetchFilteredRequests = useCallback(async (filters = {}) => {
+  // Debounced error setter
+  const setErrorDebounced = useCallback((error) => {
+    setTimeout(() => {
+      dispatch({ type: REQUEST_ACTIONS.SET_ERROR, payload: error });
+    }, 100);
+  }, []);
+
+  // Request queue processor for batch operations
+  const processRequestQueue = useCallback(async () => {
+    if (isProcessingQueue.current || requestQueue.current.length === 0) return;
+    
+    isProcessingQueue.current = true;
+    const batch = requestQueue.current.splice(0, 10); // Process in batches of 10
+    
     try {
-      dispatch({ type: REQUEST_ACTIONS.SET_LOADING, payload: true });
-
-      let selectClause = `
-        req_id,
-        req_fname,
-        req_lname,
-        req_purpose,
-        req_contact,
-        req_date,
-        bc_number,
-        owner_id
-      `;
-
-      if (filters.includeOwner || filters.includeStatus) {
-        selectClause += `
-          ${filters.includeOwner ? ', owner:owner_id(*)' : ''}
-          ${filters.includeStatus ? ', status:status_id(status_current)' : ''}
-        `;
+      await Promise.allSettled(batch.map(request => request()));
+    } finally {
+      isProcessingQueue.current = false;
+      if (requestQueue.current.length > 0) {
+        setTimeout(processRequestQueue, 100); // Continue processing
       }
-
-      let query = supabase.from('requester').select(selectClause);
-
-      if (filters.statusId && filters.statusId !== 'all') {
-        query = query.eq('status_id', filters.statusId);
-      }
-
-      if (filters.purpose && filters.purpose !== 'all') {
-        query = query.ilike('req_purpose', `%${filters.purpose}%`);
-      }
-
-      if (filters.isDraft && filters.isDraft !== 'all') {
-        query = query.eq('is_draft', filters.isDraft === 'true');
-      }
-
-      if (filters.userId) {
-        query = query.eq('user_id', filters.userId);
-      }
-
-      if (filters.dateRange) {
-        if (filters.dateRange.startDate) {
-          query = query.gte('req_date', filters.dateRange.startDate);
-        }
-        if (filters.dateRange.endDate) {
-          query = query.lte('req_date', filters.dateRange.endDate);
-        }
-      }
-
-      if (filters.limit) {
-        query = query.limit(filters.limit);
-      }
-
-      const { data, error } = await query.order('req_date', { ascending: false });
-      if (error) throw error;
-      
-      dispatch({ type: REQUEST_ACTIONS.SET_REQUESTS, payload: data || [] });
-      return data;
-    } catch (error) {
-      dispatch({ type: REQUEST_ACTIONS.SET_ERROR, payload: error.message });
-      throw error;
     }
   }, []);
 
-  const checkDuplicateRequest = async (requestData) => {
+  // Optimized fetch with caching and request deduplication
+  const fetchFilteredRequests = useCallback(async (filters = {}) => {
+    // Cancel previous request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
     try {
+      dispatch({ type: REQUEST_ACTIONS.SET_LOADING, payload: true });
+
+      // Check cache first
+      const cacheKey = getCacheKey('fetchFiltered', filters);
+      const cached = state.cache.get(cacheKey);
+      if (isCacheValid(cached)) {
+        dispatch({ type: REQUEST_ACTIONS.SET_REQUESTS, payload: cached.data });
+        return cached.data;
+      }
+
+      // Optimized select clause - only get what we need
+      const baseFields = 'req_id,req_fname,req_lname,req_purpose,req_contact,req_date,bc_number,owner_id,is_draft';
+      let selectClause = baseFields;
+
+      if (filters.includeOwner) {
+        selectClause += ',owner:owner_id(owner_id,owner_fname,owner_lname)';
+      }
+      if (filters.includeStatus) {
+        selectClause += ',status:status_id(status_current)';
+      }
+
       let query = supabase
         .from('requester')
-        .select('*, status:status_id(status_current)')
+        .select(selectClause)
+        .abortSignal(abortController.signal);
+
+      // Apply filters efficiently
+      if (filters.statusId && filters.statusId !== 'all') {
+        query = query.eq('status_id', filters.statusId);
+      }
+      if (filters.purpose && filters.purpose !== 'all') {
+        query = query.ilike('req_purpose', `%${filters.purpose}%`);
+      }
+      if (filters.isDraft !== undefined && filters.isDraft !== 'all') {
+        query = query.eq('is_draft', filters.isDraft === 'true');
+      }
+      if (filters.userId) {
+        query = query.eq('user_id', filters.userId);
+      }
+      if (filters.dateRange?.startDate) {
+        query = query.gte('req_date', filters.dateRange.startDate);
+      }
+      if (filters.dateRange?.endDate) {
+        query = query.lte('req_date', filters.dateRange.endDate);
+      }
+
+      // Optimize ordering and limiting
+      query = query
+        .order('req_date', { ascending: false })
+        .limit(filters.limit || 100); // Default limit to prevent large queries
+
+      const { data, error } = await query;
+      
+      if (abortController.signal.aborted) return;
+      if (error) throw error;
+      
+      const result = data || [];
+      
+      // Update cache
+      dispatch({ 
+        type: REQUEST_ACTIONS.UPDATE_CACHE, 
+        payload: { key: cacheKey, data: result }
+      });
+      
+      dispatch({ type: REQUEST_ACTIONS.SET_REQUESTS, payload: result });
+      return result;
+    } catch (error) {
+      if (error.name === 'AbortError') return;
+      setErrorDebounced(error.message);
+      throw error;
+    }
+  }, [state.cache, setErrorDebounced]);
+
+  // Optimized duplicate check with early exit
+  const checkDuplicateRequest = useCallback(async (requestData) => {
+    try {
+      const { data, error } = await supabase
+        .from('requester')
+        .select('req_id,status:status_id(status_current)')
         .eq('user_id', requestData.userId)
         .eq('req_fname', requestData.firstName)
         .eq('req_lname', requestData.lastName)
         .eq('req_contact', requestData.contactNumber)
         .eq('req_purpose', requestData.purpose)
-        .eq('is_draft', false);
+        .eq('is_draft', false)
+        .limit(1); // Only need to know if one exists
 
-      if (requestData.ownerId !== null && requestData.ownerId !== undefined) {
-        query = query.eq('owner_id', requestData.ownerId);
-      }
+      if (error) return false;
 
-      if (requestData.bcNumber !== null && requestData.bcNumber !== undefined) {
-        query = query.eq('bc_number', requestData.bcNumber);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-
-      return data?.some(req =>
-        req.status?.status_current &&
-        !['completed', 'cancelled', 'rejected', 'approved'].includes(req.status.status_current.toLowerCase())
-      );
+      return data?.some(req => {
+        const status = req.status?.status_current?.toLowerCase();
+        return status && !['completed', 'cancelled', 'rejected', 'approved'].includes(status);
+      });
     } catch (error) {
-      console.error('Error checking duplicate request:', error);
-      return false; // Don't block request creation on duplicate check failure
+      console.error('Duplicate check error:', error);
+      return false;
     }
-  };
+  }, []);
 
-  const getRequestById = async (id) => {
+  // Optimized getRequestById with caching
+  const getRequestById = useCallback(async (id) => {
     const parsedId = parseInt(id, 10);
     if (isNaN(parsedId)) throw new Error("Invalid request ID.");
 
     try {
       dispatch({ type: REQUEST_ACTIONS.SET_LOADING, payload: true });
       
+      // Check cache first
+      const cacheKey = getCacheKey('getById', parsedId);
+      const cached = state.cache.get(cacheKey);
+      if (isCacheValid(cached)) {
+        dispatch({ type: REQUEST_ACTIONS.SET_CURRENT_REQUEST, payload: cached.data });
+        dispatch({ type: REQUEST_ACTIONS.SET_LOADING, payload: false });
+        return cached.data;
+      }
+
       const { data, error } = await supabase
         .from('requester')
         .select(`
@@ -191,160 +274,137 @@ export const RequestProvider = ({ children }) => {
       if (error) throw error;
       if (!data) throw new Error("Request not found.");
 
+      // Update cache
+      dispatch({ 
+        type: REQUEST_ACTIONS.UPDATE_CACHE, 
+        payload: { key: cacheKey, data }
+      });
+
       dispatch({ type: REQUEST_ACTIONS.SET_CURRENT_REQUEST, payload: data });
       dispatch({ type: REQUEST_ACTIONS.SET_LOADING, payload: false });
       return data;
     } catch (error) {
-      dispatch({ type: REQUEST_ACTIONS.SET_ERROR, payload: error.message });
+      setErrorDebounced(error.message);
       throw error;
     }
-  };
+  }, [state.cache, setErrorDebounced]);
 
-  // Add this function to your RequestContext or create a utility function
-const deleteDraftWithCascade = async (reqId) => {
-  try {
-    console.log('Starting cascading delete for request:', reqId);
-    
-    // First, get the request details to find associated records
-    const { data: requestData, error: requestError } = await supabase
-      .from('requester')
-      .select('owner_id')
-      .eq('req_id', reqId)
-      .single();
-
-    if (requestError) {
-      console.error('Error fetching request data:', requestError);
-      throw requestError;
-    }
-
-    let ownerData = null;
-    
-    // If there's an owner_id, get the owner details to find parent_id and address_id
-    if (requestData?.owner_id) {
-      const { data: owner, error: ownerError } = await supabase
-        .from('owner')
-        .select('owner_id, parent_id, address_id')
-        .eq('owner_id', requestData.owner_id)
+  // Optimized cascading delete with transaction-like behavior
+  const deleteDraftWithCascade = useCallback(async (reqId) => {
+    try {
+      console.log('Starting optimized cascading delete for request:', reqId);
+      
+      // Get all related data in one query
+      const { data: requestData, error: requestError } = await supabase
+        .from('requester')
+        .select(`
+          req_id,
+          owner_id,
+          owner:owner_id(owner_id, parent_id, address_id)
+        `)
+        .eq('req_id', reqId)
         .single();
 
-      if (ownerError) {
-        console.error('Error fetching owner data:', ownerError);
-        throw ownerError;
+      if (requestError) throw requestError;
+
+      // Batch delete operations
+      const deleteOperations = [];
+
+      // Status table
+      deleteOperations.push(
+        supabase.from('status').delete().eq('req_id', reqId)
+      );
+
+      // Birth certificate table
+      deleteOperations.push(
+        supabase.from('birthcertificate').delete().eq('req_id', reqId)
+      );
+
+      if (requestData.owner) {
+        const owner = requestData.owner;
+        
+        // Owner table
+        deleteOperations.push(
+          supabase.from('owner').delete().eq('owner_id', owner.owner_id)
+        );
+
+        // Parent table
+        if (owner.parent_id) {
+          deleteOperations.push(
+            supabase.from('parent').delete().eq('parent_id', owner.parent_id)
+          );
+        }
+
+        // Address table
+        if (owner.address_id) {
+          deleteOperations.push(
+            supabase.from('address').delete().eq('address_id', owner.address_id)
+          );
+        }
+      }
+
+      // Execute all delete operations
+      await Promise.allSettled(deleteOperations);
+
+      // Finally delete the main request
+      const { error: requesterDeleteError } = await supabase
+        .from('requester')
+        .delete()
+        .eq('req_id', reqId);
+
+      if (requesterDeleteError) throw requesterDeleteError;
+
+      // Clear cache entries related to this request
+      const newCache = new Map(state.cache);
+      for (const [key] of newCache) {
+        if (key.includes(reqId.toString())) {
+          newCache.delete(key);
+        }
       }
       
-      ownerData = owner;
+      dispatch({ 
+        type: REQUEST_ACTIONS.BATCH_UPDATE, 
+        payload: { cache: newCache }
+      });
+
+      console.log('Optimized cascading delete completed for request:', reqId);
+      return { success: true };
+      
+    } catch (error) {
+      console.error('Error in cascading delete:', error);
+      throw error;
     }
+  }, [state.cache]);
 
-    // Delete in reverse order of dependencies
-    
-    // 1. Delete from status table first (if exists)
-    const { error: statusDeleteError } = await supabase
-      .from('status')
-      .delete()
-      .eq('req_id', reqId);
-    
-    if (statusDeleteError) {
-      console.error('Error deleting status:', statusDeleteError);
-      // Don't throw here as status might not exist
-    }
-
-    // 2. Delete from requester table
-    const { error: requesterDeleteError } = await supabase
-      .from('requester')
-      .delete()
-      .eq('req_id', reqId);
-
-    if (requesterDeleteError) {
-      console.error('Error deleting requester:', requesterDeleteError);
-      throw requesterDeleteError;
-    }
-
-    // 3. Delete owner and related records if they exist
-    if (ownerData) {
-      // Delete owner
-      const { error: ownerDeleteError } = await supabase
-        .from('owner')
-        .delete()
-        .eq('owner_id', ownerData.owner_id);
-
-      if (ownerDeleteError) {
-        console.error('Error deleting owner:', ownerDeleteError);
-        throw ownerDeleteError;
-      }
-
-      // Delete parent if exists
-      if (ownerData.parent_id) {
-        const { error: parentDeleteError } = await supabase
-          .from('parent')
-          .delete()
-          .eq('parent_id', ownerData.parent_id);
-
-        if (parentDeleteError) {
-          console.error('Error deleting parent:', parentDeleteError);
-          throw parentDeleteError;
-        }
-      }
-
-      // Delete address if exists
-      if (ownerData.address_id) {
-        const { error: addressDeleteError } = await supabase
-          .from('address')
-          .delete()
-          .eq('address_id', ownerData.address_id);
-
-        if (addressDeleteError) {
-          console.error('Error deleting address:', addressDeleteError);
-          throw addressDeleteError;
-        }
-      }
-    }
-
-    console.log('Cascading delete completed successfully for request:', reqId);
-    return { success: true };
-    
-  } catch (error) {
-    console.error('Error in cascading delete:', error);
-    throw error;
-  }
-};
-
-  const actions = {
+  // Memoized actions object
+  const actions = useMemo(() => ({
     setLoading: (loading) => dispatch({ type: REQUEST_ACTIONS.SET_LOADING, payload: loading }),
-    setError: (error) => dispatch({ type: REQUEST_ACTIONS.SET_ERROR, payload: error }),
+    setError: (error) => setErrorDebounced(error),
     clearError: () => dispatch({ type: REQUEST_ACTIONS.CLEAR_ERROR }),
     fetchFilteredRequests,
     getRequestById,
     deleteDraftWithCascade,
 
+    // Optimized fetchRequests
     fetchRequests: async (userId = null) => {
-      try {
-        dispatch({ type: REQUEST_ACTIONS.SET_LOADING, payload: true });
-        
-        let query = supabase
-          .from('requester')
-          .select(`*, owner:owner_id(*), status:status_id(status_current)`)
-          .order('req_date', { ascending: false });
-        
-        if (userId) {
-          query = query.eq('user_id', userId);
-        }
-        
-        const { data, error } = await query;
-        if (error) throw error;
-        
-        dispatch({ type: REQUEST_ACTIONS.SET_REQUESTS, payload: data || [] });
-        return data;
-      } catch (error) {
-        dispatch({ type: REQUEST_ACTIONS.SET_ERROR, payload: error.message });
-        throw error;
-      }
+      return await fetchFilteredRequests({ 
+        userId, 
+        includeOwner: true, 
+        includeStatus: true,
+        limit: 100
+      });
     },
 
     fetchUserRequests: async () => {
       if (!currentUser?.id) return [];
-      return await actions.fetchRequests(currentUser.id);
+      return await fetchFilteredRequests({ 
+        userId: currentUser.id, 
+        includeOwner: true, 
+        includeStatus: true 
+      });
     },
 
+    // Optimized createInitialRequest
     createInitialRequest: async (requestData) => {
       try {
         dispatch({ type: REQUEST_ACTIONS.SET_LOADING, payload: true });
@@ -356,46 +416,63 @@ const deleteDraftWithCascade = async (reqId) => {
             throw new Error('A similar request already exists and is still in progress.');
           }
         }
-    
+
+        // Prepare insert data
+        const insertData = {
+          user_id: requestData.userId,
+          owner_id: null,
+          bc_number: requestData.bcNumber || null,
+          req_fname: requestData.firstName.trim(),
+          req_lname: requestData.lastName.trim(),
+          req_contact: requestData.contactNumber.trim(),
+          req_purpose: requestData.purpose.trim(),
+          req_date: new Date().toISOString(),
+          is_draft: requestData.isDraft || true
+        };
+
         const { data: insertedRequest, error } = await supabase
           .from('requester')
-          .insert([{
-            user_id: requestData.userId,
-            owner_id: null,
-            bc_number: requestData.bcNumber || null,
-            req_fname: requestData.firstName,
-            req_lname: requestData.lastName,
-            req_contact: requestData.contactNumber,
-            req_purpose: requestData.purpose,
-            req_date: new Date().toISOString(),
-            is_draft: requestData.isDraft || true
-          }])
+          .insert([insertData])
           .select()
           .single();
-    
+
         if (error) throw error;
-    
+
         const reqId = insertedRequest.req_id;
-    
-        // Only create status and birthcertificate records if NOT a draft
+
+        // Batch create related records for non-draft requests
         if (!requestData.isDraft) {
-          // Create status record
-          const { error: statusError } = await supabase
-            .from('status')
-            .insert([{ req_id: reqId, status_current: 'pending' }]);
-          if (statusError) throw statusError;
-    
-          // Create birth certificate record  
-          const { error: bcError } = await supabase
-            .from('birthcertificate')
-            .insert([{ req_id: reqId }]);
-          if (bcError) throw bcError;
+          const relatedInserts = [
+            supabase.from('status').insert([{ req_id: reqId, status_current: 'pending' }]),
+            supabase.from('birthcertificate').insert([{ req_id: reqId }])
+          ];
+          
+          const results = await Promise.allSettled(relatedInserts);
+          const failures = results.filter(result => result.status === 'rejected');
+          
+          if (failures.length > 0) {
+            console.error('Some related records failed to create:', failures);
+            // Could implement rollback here if needed
+          }
         }
-    
+
+        // Clear relevant cache entries
+        const newCache = new Map(state.cache);
+        for (const [key] of newCache) {
+          if (key.includes('fetchFiltered')) {
+            newCache.delete(key);
+          }
+        }
+        
+        dispatch({ 
+          type: REQUEST_ACTIONS.BATCH_UPDATE, 
+          payload: { cache: newCache }
+        });
+
         dispatch({ type: REQUEST_ACTIONS.ADD_REQUEST, payload: insertedRequest });
         return insertedRequest;
       } catch (error) {
-        dispatch({ type: REQUEST_ACTIONS.SET_ERROR, payload: error.message });
+        setErrorDebounced(error.message);
         throw error;
       }
     },
@@ -407,6 +484,7 @@ const deleteDraftWithCascade = async (reqId) => {
       });
     },
 
+    // Optimized update with cache invalidation
     updateRequest: async (id, updateData) => {
       try {
         dispatch({ type: REQUEST_ACTIONS.SET_LOADING, payload: true });
@@ -420,10 +498,23 @@ const deleteDraftWithCascade = async (reqId) => {
           
         if (error) throw error;
         
+        // Clear cache entries for this request
+        const newCache = new Map(state.cache);
+        for (const [key] of newCache) {
+          if (key.includes(id.toString()) || key.includes('fetchFiltered')) {
+            newCache.delete(key);
+          }
+        }
+        
+        dispatch({ 
+          type: REQUEST_ACTIONS.BATCH_UPDATE, 
+          payload: { cache: newCache }
+        });
+        
         dispatch({ type: REQUEST_ACTIONS.UPDATE_REQUEST, payload: data });
         return data;
       } catch (error) {
-        dispatch({ type: REQUEST_ACTIONS.SET_ERROR, payload: error.message });
+        setErrorDebounced(error.message);
         throw error;
       }
     },
@@ -439,10 +530,10 @@ const deleteDraftWithCascade = async (reqId) => {
           
         if (error) throw error;
         
-        // Refresh the current request to get updated status
+        // Refresh the current request
         await actions.getRequestById(reqId);
       } catch (error) {
-        dispatch({ type: REQUEST_ACTIONS.SET_ERROR, payload: error.message });
+        setErrorDebounced(error.message);
         throw error;
       }
     },
@@ -451,22 +542,39 @@ const deleteDraftWithCascade = async (reqId) => {
       try {
         dispatch({ type: REQUEST_ACTIONS.SET_LOADING, payload: true });
         
-        // Clean up session storage if this is the current request
+        // Clean up session storage
         if (id === sessionStorage.getItem("currentRequestId")) {
           sessionStorage.removeItem("currentRequestId");
         }
 
-        // Delete related records first (foreign key constraints)
-        await supabase.from('status').delete().eq('req_id', id);
-        await supabase.from('birthcertificate').delete().eq('req_id', id);
+        // Batch delete related records
+        const deleteOperations = [
+          supabase.from('status').delete().eq('req_id', id),
+          supabase.from('birthcertificate').delete().eq('req_id', id)
+        ];
+        
+        await Promise.allSettled(deleteOperations);
         
         // Delete the main request
         const { error } = await supabase.from('requester').delete().eq('req_id', id);
         if (error) throw error;
         
+        // Clear cache
+        const newCache = new Map(state.cache);
+        for (const [key] of newCache) {
+          if (key.includes(id.toString()) || key.includes('fetchFiltered')) {
+            newCache.delete(key);
+          }
+        }
+        
+        dispatch({ 
+          type: REQUEST_ACTIONS.BATCH_UPDATE, 
+          payload: { cache: newCache }
+        });
+        
         dispatch({ type: REQUEST_ACTIONS.DELETE_REQUEST, payload: id });
       } catch (error) {
-        dispatch({ type: REQUEST_ACTIONS.SET_ERROR, payload: error.message });
+        setErrorDebounced(error.message);
         throw error;
       }
     },
@@ -475,6 +583,12 @@ const deleteDraftWithCascade = async (reqId) => {
       if (!currentUser?.id) return null;
       
       try {
+        const cacheKey = getCacheKey('userDraft', currentUser.id);
+        const cached = state.cache.get(cacheKey);
+        if (isCacheValid(cached)) {
+          return cached.data;
+        }
+
         const { data, error } = await supabase
           .from('requester')
           .select(`
@@ -492,6 +606,13 @@ const deleteDraftWithCascade = async (reqId) => {
           .maybeSingle();
           
         if (error) throw error;
+
+        // Update cache
+        dispatch({ 
+          type: REQUEST_ACTIONS.UPDATE_CACHE, 
+          payload: { key: cacheKey, data }
+        });
+
         return data;
       } catch (error) {
         console.error('Error fetching user draft:', error);
@@ -521,7 +642,46 @@ const deleteDraftWithCascade = async (reqId) => {
       dispatch({ type: REQUEST_ACTIONS.CLEAR_CURRENT_REQUEST });
     },
 
-    getFilteredRequests: () => {
+    getRequestWithOwnerDetails: async (reqId) => {
+      try {
+        const cacheKey = getCacheKey('withOwner', reqId);
+        const cached = state.cache.get(cacheKey);
+        if (isCacheValid(cached)) {
+          return cached.data;
+        }
+
+        const { data, error } = await supabase
+          .from('requester')
+          .select(`
+            *,
+            owner:owner_id(*,
+              parent:parent_id(*),
+              address:address_id(*)
+            ),
+            status:status_id(status_current)
+          `)
+          .eq('req_id', reqId)
+          .single();
+          
+        if (error) throw error;
+
+        // Update cache
+        dispatch({ 
+          type: REQUEST_ACTIONS.UPDATE_CACHE, 
+          payload: { key: cacheKey, data }
+        });
+
+        return data;
+      } catch (error) {
+        console.error('Error fetching request with owner details:', error);
+        throw error;
+      }
+    }
+  }), [currentUser?.id, fetchFilteredRequests, getRequestById, deleteDraftWithCascade, checkDuplicateRequest, setErrorDebounced, state.cache]);
+
+  // Memoized computed values
+  const memoizedValues = useMemo(() => {
+    const getFilteredRequests = () => {
       let filtered = state.requests;
       
       if (state.filters.statusId !== 'all') {
@@ -548,113 +708,118 @@ const deleteDraftWithCascade = async (reqId) => {
       }
       
       return filtered;
-    },
+    };
 
-    getRequestStats: () => {
+    const getRequestStats = () => {
       const stats = {
         total: state.requests.length,
-        drafts: state.requests.filter(r => r.is_draft).length,
-        submitted: state.requests.filter(r => !r.is_draft).length,
+        drafts: 0,
+        submitted: 0,
         byStatus: {},
         byPurpose: {}
       };
       
-      state.requests.filter(r => !r.is_draft).forEach(r => {
-        const status = r.status?.status_current || 'unknown';
-        stats.byStatus[status] = (stats.byStatus[status] || 0) + 1;
-      });
-      
-      state.requests.forEach(r => {
-        const purpose = r.req_purpose || 'unknown';
+      for (const request of state.requests) {
+        if (request.is_draft) {
+          stats.drafts++;
+        } else {
+          stats.submitted++;
+          const status = request.status?.status_current || 'unknown';
+          stats.byStatus[status] = (stats.byStatus[status] || 0) + 1;
+        }
+        
+        const purpose = request.req_purpose || 'unknown';
         stats.byPurpose[purpose] = (stats.byPurpose[purpose] || 0) + 1;
-      });
+      }
       
       return stats;
-    },
+    };
 
-    getRequestWithOwnerDetails: async (reqId) => {
-      try {
-        const { data, error } = await supabase
-          .from('requester')
-          .select(`
-            *,
-            owner:owner_id(*,
-              parent:parent_id(*),
-              address:address_id(*)
-            ),
-            status:status_id(status_current)
-          `)
-          .eq('req_id', reqId)
-          .single();
-          
-        if (error) throw error;
-        return data;
-      } catch (error) {
-        console.error('Error fetching request with owner details:', error);
-        throw error;
-      }
-    }
-  };
+    return {
+      filteredRequests: getFilteredRequests(),
+      stats: getRequestStats()
+    };
+  }, [state.requests, state.filters]);
 
+  // Optimized initialization
   useEffect(() => {
     if (!currentUser?.id) return;
+
+    let isMounted = true;
 
     const initializeContext = async () => {
       try {
         const savedId = sessionStorage.getItem('currentRequestId');
-        if (savedId) {
+        if (savedId && isMounted) {
           try {
             await actions.getRequestById(savedId);
           } catch (err) {
             console.warn('Failed to load saved request, clearing session:', err);
             sessionStorage.removeItem('currentRequestId');
-            await actions.fetchUserRequests();
+            if (isMounted) {
+              await actions.fetchUserRequests();
+            }
           }
-        } else {
+        } else if (isMounted) {
           await actions.fetchUserRequests();
         }
       } catch (error) {
-        console.error('Error initializing request context:', error);
-        dispatch({ type: REQUEST_ACTIONS.SET_ERROR, payload: error.message });
+        if (isMounted) {
+          console.error('Error initializing request context:', error);
+          setErrorDebounced(error.message);
+        }
       }
     };
 
     initializeContext();
 
-    // Set up real-time subscription
+    // Optimized real-time subscription
     const subscription = supabase
       .channel('requester_changes')
       .on('postgres_changes', { 
         event: '*', 
         schema: 'public', 
-        table: 'requester' 
+        table: 'requester',
+        filter: `user_id=eq.${currentUser.id}` // Only listen to current user's changes
       }, (payload) => {
-        switch (payload.eventType) {
-          case 'INSERT':
-            dispatch({ type: REQUEST_ACTIONS.ADD_REQUEST, payload: payload.new });
-            break;
-          case 'UPDATE':
-            dispatch({ type: REQUEST_ACTIONS.UPDATE_REQUEST, payload: payload.new });
-            break;
-          case 'DELETE':
-            dispatch({ type: REQUEST_ACTIONS.DELETE_REQUEST, payload: payload.old.req_id });
-            break;
-        }
+        if (!isMounted) return;
+        
+        // Queue updates to prevent rapid re-renders
+        requestQueue.current.push(() => {
+          switch (payload.eventType) {
+            case 'INSERT':
+              dispatch({ type: REQUEST_ACTIONS.ADD_REQUEST, payload: payload.new });
+              break;
+            case 'UPDATE':
+              dispatch({ type: REQUEST_ACTIONS.UPDATE_REQUEST, payload: payload.new });
+              break;
+            case 'DELETE':
+              dispatch({ type: REQUEST_ACTIONS.DELETE_REQUEST, payload: payload.old.req_id });
+              break;
+          }
+        });
+        
+        processRequestQueue();
       })
       .subscribe();
 
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
     };
-  }, [currentUser]);
+  }, [currentUser?.id, actions, setErrorDebounced, processRequestQueue]);
+
+  const contextValue = useMemo(() => ({
+    ...state,
+    ...actions,
+    ...memoizedValues
+  }), [state, actions, memoizedValues]);
 
   return (
-    <RequestContext.Provider value={{
-      ...state,
-      ...actions,
-      filteredRequests: actions.getFilteredRequests(),
-      stats: actions.getRequestStats()
-    }}>
+    <RequestContext.Provider value={contextValue}>
       {children}
     </RequestContext.Provider>
   );

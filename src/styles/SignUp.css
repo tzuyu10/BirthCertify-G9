@@ -1,25 +1,59 @@
-/* SignUp page specific styles */
+/* SignUp page specific styles with image loading optimization */
 .signup-page {
     min-height: 100vh;
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    background: url(./Create.png) no-repeat;
     background-size: cover;
     background-position: center;
+    background-repeat: no-repeat;
     padding-right: 65px;
     font-family: "Poppins", sans-serif;
+    position: relative;
+    transition: background-image 0.3s ease-in-out;
 }
 
+/* Fallback gradient background when image fails */
+.signup-page.background-error {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Background loading state */
+.background-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    z-index: 1;
+}
+
+.background-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* Ensure signup container appears above loading overlay */
 .signup-container {
     transform: scale(0.75);
     width: 540px;
-    background: transparent;
+    background: rgba(255, 255, 255, 0.95);
     color: black;
     border: none;
     border-radius: 12px;
     padding: 10px 40px;
     backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 2;
 }
 
 .signup-card {
@@ -106,6 +140,18 @@
     text-align: center;
     font-size: 14px;
     font-weight: 500;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .signup-message.success {
@@ -115,17 +161,17 @@
 }
 
 .signup-message.error {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-  min-height: 40px;
-  max-height: 50px;
-  max-width: 100%;
-  padding: 8px 12px;
-  overflow-y: auto;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  hyphens: auto;
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    min-height: 40px;
+    max-height: 50px;
+    max-width: 100%;
+    padding: 8px 12px;
+    overflow-y: auto;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
 }
 
 .signup-btn {
@@ -141,6 +187,11 @@
     margin-bottom: 20px;
     box-shadow: 0 0 10px rgba(0, 0, 0, .1);
     transition: all 0.2s ease;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
 .signup-btn:hover:not(:disabled) {
@@ -154,7 +205,7 @@
 }
 
 .signup-btn:disabled {
-    opacity: 0.6;
+    opacity: 0.7;
     cursor: not-allowed;
     transform: none;
 }
@@ -177,7 +228,7 @@
 }
 
 .signup-divider span {
-    background: white;
+    background: rgba(255, 255, 255, 0.95);
     padding: 0 15px;
     color: #666;
     position: relative;
@@ -216,7 +267,7 @@
 }
 
 .signup-google-btn:disabled {
-    opacity: 0.6;
+    opacity: 0.7;
     cursor: not-allowed;
     transform: none;
 }
@@ -224,6 +275,17 @@
 .google-icon {
     width: 18px;
     height: 18px;
+    flex-shrink: 0;
+}
+
+/* Button spinner */
+.btn-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #333;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
     flex-shrink: 0;
 }
 
@@ -249,6 +311,12 @@
 .signup-link:hover {
     text-decoration: underline;
     color: #007bff;
+}
+
+/* Spin animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 /* Responsive design */
@@ -311,29 +379,50 @@
     outline-offset: 2px;
 }
 
-/* Loading state styling */
-.signup-btn:disabled,
-.signup-google-btn:disabled {
-    position: relative;
+/* Image preloading states */
+.signup-page:not(.background-loaded):not(.background-error) {
+    background-image: none;
 }
 
-.signup-btn:disabled::after {
-    content: '';
-    position: absolute;
-    width: 16px;
-    height: 16px;
-    margin: auto;
-    border: 2px solid transparent;
-    border-top-color: #666;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
+.signup-page.background-loaded {
+    background-image: url('./Create.png');
 }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+/* Enhanced loading states */
+.signup-page.background-loaded .background-loading {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease-out;
+}
+
+/* Improved backdrop filter support */
+@supports not (backdrop-filter: blur(10px)) {
+    .signup-container {
+        background: rgba(255, 255, 255, 0.98);
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .signup-container {
+        background: white;
+        border: 2px solid black;
+    }
+    
+    .signup-page.background-error {
+        background: #000;
+        color: white;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .signup-btn, .signup-google-btn, .background-loading, .signup-message {
+        animation: none;
+        transition: none;
+    }
+    
+    .btn-spinner, .background-spinner {
+        animation: none;
+    }
 }
