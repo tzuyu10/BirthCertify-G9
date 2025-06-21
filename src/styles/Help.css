@@ -4,15 +4,9 @@
   min-height: 300vh;
   font-family: "Poppins", sans-serif;
   color: #333;
-  
+
   /* Add the missing background gradient */
-  background: linear-gradient(
-    135deg,
-    rgba(135, 206, 235, 0.3),
-    rgba(74, 144, 226, 0.3),
-    rgba(46, 134, 171, 0.3),
-    rgba(102, 126, 234, 0.3)
-  );
+
   background-size: 400% 400%;
   animation: gradientShift 8s ease-in-out infinite;
 }

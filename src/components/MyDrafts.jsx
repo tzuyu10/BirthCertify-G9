@@ -225,12 +225,6 @@ const MyDrafts = () => {
                     <p className="draft-subtitle">
                       For: {draft.req_fname} {draft.req_lname}
                     </p>
-                    <p className="draft-date">
-                      Last updated: {formatDate(draft.req_date)}
-                    </p>
-                    {draft.bc_number && (
-                      <p className="draft-bc-number">BC#: {draft.bc_number}</p>
-                    )}
                   </div>
 
                   <div className="completion-section">
