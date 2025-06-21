@@ -1,18 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   PieChart,
   Pie,
   Cell,
   ResponsiveContainer,
   Tooltip,
-  LabelList,
 } from "recharts";
 import StatCard from "../components/StatCard";
-import { supabase } from "../../supabase"; // Direct supabase import like AdminDashboard
+import { supabase } from "../../supabase";
 import "../styles/StatCard.css";
 
-// Custom label component for pie chart with smart visibility
-const CustomLabel = ({
+// Memoized Custom label component for pie chart
+const CustomLabel = React.memo(({
   cx,
   cy,
   midAngle,
@@ -66,7 +65,57 @@ const CustomLabel = ({
       </text>
     </g>
   );
-};
+});
+
+// Memoized Activity Item component
+const ActivityItem = React.memo(({ 
+  request, 
+  onRequestClick, 
+  isNewRequest, 
+  getStatusBadge, 
+  formatDate 
+}) => {
+  const statusBadge = getStatusBadge(request.status_current, request.is_draft);
+  const isNew = isNewRequest(request);
+  
+  const handleClick = useCallback(() => {
+    onRequestClick(request);
+  }, [onRequestClick, request]);
+  
+  return (
+    <div 
+      className={`activity-item ${isNew ? 'new-item' : ''}`}
+      onClick={handleClick}
+    >
+      <div className="activity-main">
+        <div className="activity-info">
+          <div className="activity-title">
+            <span className="request-id">#{request.req_id}</span>
+            <span className="requester-name">
+              {request.req_fname} {request.req_lname}
+            </span>
+            {isNew && <span className="new-badge">NEW</span>}
+          </div>
+          <div className="activity-purpose">
+            Purpose: {request.req_purpose || 'Not specified'}
+          </div>
+          <div className="activity-date">
+            Created: {formatDate(request.req_date)}
+          </div>
+        </div>
+        
+        <div className="activity-meta">
+          <span className={statusBadge.className}>
+            {statusBadge.text}
+          </span>
+          <div className="activity-time">
+            {formatDate(request.req_date)}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
 
 const DashboardOverview = ({ 
   stats, 
@@ -83,8 +132,8 @@ const DashboardOverview = ({
   const [currentUser, setCurrentUser] = useState(null);
   const [lastRefresh, setLastRefresh] = useState(null);
 
-  // Helper function to determine if request is new (within last 24 hours)
-  const isNewRequest = (request) => {
+  // Memoized helper functions
+  const isNewRequest = useCallback((request) => {
     try {
       if (!request.req_date) {
         console.warn('Request has no req_date:', request.req_id);
@@ -93,7 +142,6 @@ const DashboardOverview = ({
 
       const requestDate = new Date(request.req_date);
       
-      // Check if date is valid
       if (isNaN(requestDate.getTime())) {
         console.warn('Invalid date for request:', request.req_id, request.req_date);
         return false;
@@ -102,151 +150,18 @@ const DashboardOverview = ({
       const now = new Date();
       const hoursDiff = (now - requestDate) / (1000 * 60 * 60);
       
-      console.log(`Request ${request.req_id}: ${request.req_date} -> ${hoursDiff} hours ago`);
-      
-      return hoursDiff <= 24 && hoursDiff >= 0; // Within last 24 hours and not in future
+      return hoursDiff <= 24 && hoursDiff >= 0;
     } catch (error) {
       console.error('Error checking if request is new:', error, request);
       return false;
     }
-  };
+  }, []);
 
-  // Helper function to determine if request is rejected
-  const isRejectedRequest = (request) => {
+  const isRejectedRequest = useCallback((request) => {
     return request.status_current === 'cancelled' || request.status_current === 'rejected';
-  };
+  }, []);
 
-  // Initial data fetch or use passed data
-  useEffect(() => {
-    if (allRequestsData && isAdminView) {
-      // Use passed admin data
-      setRecentRequests(allRequestsData);
-      setLoading(false);
-      setError(null);
-      setLastRefresh(new Date().toLocaleTimeString());
-    } else {
-      // Fetch user data
-      fetchUserDashboardData();
-    }
-  }, [currentUserId, allRequestsData, isAdminView]);
-
-  // Enhanced real-time subscription (only for regular users, admin handles it in AdminDashboard)
-  useEffect(() => {
-    if (isAdminView || !currentUser && !currentUserId) return;
-
-    const userId = currentUserId || currentUser?.id;
-    if (!userId) return;
-
-    console.log('🔔 Setting up user real-time subscriptions for user:', userId);
-
-    // Subscribe to status changes for user's requests
-    const statusSubscription = supabase
-      .channel(`user-status-changes-${userId}`)
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'status' 
-        },
-        (payload) => {
-          console.log('🔄 User: Status table changed:', payload);
-          fetchUserDashboardData();
-        }
-      )
-      .subscribe((status) => {
-        console.log('📡 User status subscription status:', status);
-      });
-
-    // Subscribe to requester table changes for this user
-    const requesterSubscription = supabase
-      .channel(`user-requester-changes-${userId}`)
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'requester',
-          filter: `user_id=eq.${userId}`
-        },
-        (payload) => {
-          console.log('🔄 User: Requester table changed:', payload);
-          fetchUserDashboardData();
-        }
-      )
-      .subscribe((status) => {
-        console.log('📡 User requester subscription status:', status);
-      });
-
-    return () => {
-      console.log('🔌 Unsubscribing from user real-time updates');
-      statusSubscription.unsubscribe();
-      requesterSubscription.unsubscribe();
-    };
-  }, [currentUser, currentUserId, isAdminView]);
-
-  // Auto-refresh as backup (only for regular users)
-  useEffect(() => {
-    if (isAdminView) return; // Admin handles auto-refresh
-    
-    const interval = setInterval(() => {
-      console.log('⏰ User auto-refresh triggered');
-      fetchUserDashboardData();
-    }, 180000); // 3 minutes
-    
-    return () => clearInterval(interval);
-  }, [isAdminView]);
-
-  // Manual refresh handler
-  const handleRefresh = async () => {
-    console.log('🔄 Manual refresh triggered');
-    if (onRefresh && isAdminView) {
-      // For admin view, trigger parent refresh
-      onRefresh();
-    } else {
-      // For user view, refresh locally
-      await fetchUserDashboardData();
-    }
-  };
-
-  // Filter requests based on selected filter and search term
-  const filteredRequests = recentRequests.filter(request => {
-    const matchesFilter = selectedFilter === 'all' || 
-      (selectedFilter === 'pending' && request.status_current === 'pending') ||
-      (selectedFilter === 'new' && isNewRequest(request)) ||
-      (selectedFilter === 'rejected' && isRejectedRequest(request)) ||
-      (selectedFilter === 'completed' && (request.status_current === 'completed' || request.status_current === 'approved'));
-
-    const matchesSearch = searchTerm === '' ||
-      request.req_fname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.req_lname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.req_purpose?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.req_id?.toString().includes(searchTerm);
-
-    return matchesFilter && matchesSearch;
-  });
-
-  // Get counts for filter tabs
-  const getFilterCounts = () => {
-    const counts = {
-      all: recentRequests.length,
-      new: 0,
-      pending: 0,
-      completed: 0,
-      rejected: 0
-    };
-
-    recentRequests.forEach(request => {
-      if (isNewRequest(request)) counts.new++;
-      if (request.status_current === 'pending') counts.pending++;
-      if (request.status_current === 'completed' || request.status_current === 'approved') counts.completed++;
-      if (isRejectedRequest(request)) counts.rejected++;
-    });
-
-    console.log('Filter counts:', counts);
-    return counts;
-  };
-
-  // Get status badge style
-  const getStatusBadge = (status, isDraft) => {
+  const getStatusBadge = useCallback((status, isDraft) => {
     if (isDraft) {
       return { className: 'status-badge draft', text: 'DRAFT' };
     }
@@ -263,10 +178,9 @@ const DashboardOverview = ({
       default:
         return { className: 'status-badge pending', text: 'PENDING' };
     }
-  };
+  }, []);
 
-  // Format date for display
-  const formatDate = (dateString) => {
+  const formatDate = useCallback((dateString) => {
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) {
@@ -289,27 +203,205 @@ const DashboardOverview = ({
       console.error('Error formatting date:', error, dateString);
       return 'Invalid date';
     }
-  };
+  }, []);
 
-  // Handle request click (you can customize this action)
-  const handleRequestClick = (request) => {
+  // Debounced search to prevent excessive filtering
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Memoized filtered requests
+  const filteredRequests = useMemo(() => {
+    return recentRequests.filter(request => {
+      const matchesFilter = selectedFilter === 'all' || 
+        (selectedFilter === 'pending' && request.status_current === 'pending') ||
+        (selectedFilter === 'new' && isNewRequest(request)) ||
+        (selectedFilter === 'rejected' && isRejectedRequest(request)) ||
+        (selectedFilter === 'completed' && (request.status_current === 'completed' || request.status_current === 'approved'));
+
+      const matchesSearch = debouncedSearchTerm === '' ||
+        request.req_fname?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        request.req_lname?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        request.req_purpose?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        request.req_id?.toString().includes(debouncedSearchTerm);
+
+      return matchesFilter && matchesSearch;
+    });
+  }, [recentRequests, selectedFilter, debouncedSearchTerm, isNewRequest, isRejectedRequest]);
+
+  // Memoized filter counts
+  const filterCounts = useMemo(() => {
+    const counts = {
+      all: recentRequests.length,
+      new: 0,
+      pending: 0,
+      completed: 0,
+      rejected: 0
+    };
+
+    recentRequests.forEach(request => {
+      if (isNewRequest(request)) counts.new++;
+      if (request.status_current === 'pending') counts.pending++;
+      if (request.status_current === 'completed' || request.status_current === 'approved') counts.completed++;
+      if (isRejectedRequest(request)) counts.rejected++;
+    });
+
+    return counts;
+  }, [recentRequests, isNewRequest, isRejectedRequest]);
+
+  // Memoized pie chart data
+  const pieData = useMemo(() => {
+    return [
+      { name: "Completed", value: stats.approvedRequests, color: "#28a745" },
+      { name: "Pending", value: stats.pendingRequests, color: "#ffc107" },
+      { name: "Rejected", value: stats.rejectedRequests, color: "#dc3545" },
+    ].filter((item) => item.value > 0);
+  }, [stats.approvedRequests, stats.pendingRequests, stats.rejectedRequests]);
+
+  // Optimized data fetching function
+  const fetchUserDashboardData = useCallback(async () => {
+    if (!currentUserId && !currentUser?.id) {
+      setError('No user ID available');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const userId = currentUserId || currentUser?.id;
+      
+      // Optimized query with specific field selection and limit
+      const { data, error: fetchError } = await supabase
+        .from('requester')
+        .select(`
+          req_id,
+          req_fname,
+          req_lname,
+          req_purpose,
+          req_date,
+          status_current,
+          is_draft
+        `)
+        .eq('user_id', userId)
+        .order('req_date', { ascending: false })
+        .limit(100); // Limit initial load
+
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      setRecentRequests(data || []);
+      setLastRefresh(new Date().toLocaleTimeString());
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      setError(error.message || 'Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  }, [currentUserId, currentUser?.id]);
+
+  // Initial data fetch
+  useEffect(() => {
+    if (allRequestsData && isAdminView) {
+      setRecentRequests(allRequestsData);
+      setLoading(false);
+      setError(null);
+      setLastRefresh(new Date().toLocaleTimeString());
+    } else {
+      fetchUserDashboardData();
+    }
+  }, [allRequestsData, isAdminView, fetchUserDashboardData]);
+
+  // Optimized real-time subscription
+  useEffect(() => {
+    if (isAdminView || (!currentUser && !currentUserId)) return;
+
+    const userId = currentUserId || currentUser?.id;
+    if (!userId) return;
+
+    console.log('🔔 Setting up user real-time subscriptions for user:', userId);
+
+    // Combined subscription for better performance
+    const subscription = supabase
+      .channel(`user-dashboard-${userId}`)
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'status' 
+        },
+        () => {
+          console.log('🔄 Status table changed, refreshing data');
+          fetchUserDashboardData();
+        }
+      )
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'requester',
+          filter: `user_id=eq.${userId}`
+        },
+        () => {
+          console.log('🔄 Requester table changed, refreshing data');
+          fetchUserDashboardData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('🔌 Unsubscribing from real-time updates');
+      subscription.unsubscribe();
+    };
+  }, [currentUser, currentUserId, isAdminView, fetchUserDashboardData]);
+
+  // Reduced auto-refresh frequency
+  useEffect(() => {
+    if (isAdminView) return;
+    
+    const interval = setInterval(() => {
+      console.log('⏰ Auto-refresh triggered');
+      fetchUserDashboardData();
+    }, 300000); // 5 minutes instead of 3
+    
+    return () => clearInterval(interval);
+  }, [isAdminView, fetchUserDashboardData]);
+
+  // Memoized event handlers
+  const handleRefresh = useCallback(async () => {
+    console.log('🔄 Manual refresh triggered');
+    if (onRefresh && isAdminView) {
+      onRefresh();
+    } else {
+      await fetchUserDashboardData();
+    }
+  }, [onRefresh, isAdminView, fetchUserDashboardData]);
+
+  const handleRequestClick = useCallback((request) => {
     console.log('Request clicked:', request);
-    // You could implement navigation to a detailed view here
-    // Example: navigate(`/requests/${request.req_id}`);
-  };
+    // Navigation logic here
+  }, []);
 
-  // Filter out zero values and create pie data
-  const pieData = [
-    { name: "Completed", value: stats.approvedRequests, color: "#28a745" },
-    { name: "Pending", value: stats.pendingRequests, color: "#ffc107" },
-    { name: "Rejected", value: stats.rejectedRequests, color: "#dc3545" },
-  ].filter((item) => item.value > 0);
+  const handleFilterChange = useCallback((filter) => {
+    setSelectedFilter(filter);
+  }, []);
 
-  const renderCustomLabel = (props) => {
+  const handleSearchChange = useCallback((e) => {
+    setSearchTerm(e.target.value);
+  }, []);
+
+  // Memoized custom label renderer
+  const renderCustomLabel = useCallback((props) => {
     return <CustomLabel {...props} data={pieData} />;
-  };
-
-  const filterCounts = getFilterCounts();
+  }, [pieData]);
 
   return (
     <>
@@ -386,18 +478,6 @@ const DashboardOverview = ({
               >
                 Current Active Request
               </h2>
-              <div
-                style={{
-                  content: '""',
-                  position: "absolute",
-                  bottom: "0",
-                  left: "0",
-                  right: "0",
-                  height: "2px",
-                  background:
-                    "linear-gradient(90deg, #1976d2, #2196f3, #1976d2)",
-                }}
-              ></div>
             </div>
             <div
               className="chart-container"
@@ -492,31 +572,31 @@ const DashboardOverview = ({
                 <div className="filter-tabs">
                   <button 
                     className={`filter-tab ${selectedFilter === 'all' ? 'active' : ''}`}
-                    onClick={() => setSelectedFilter('all')}
+                    onClick={() => handleFilterChange('all')}
                   >
                     All ({filterCounts.all})
                   </button>
                   <button 
                     className={`filter-tab ${selectedFilter === 'new' ? 'active' : ''}`}
-                    onClick={() => setSelectedFilter('new')}
+                    onClick={() => handleFilterChange('new')}
                   >
                     New ({filterCounts.new})
                   </button>
                   <button 
                     className={`filter-tab ${selectedFilter === 'pending' ? 'active' : ''}`}
-                    onClick={() => setSelectedFilter('pending')}
+                    onClick={() => handleFilterChange('pending')}
                   >
                     Pending ({filterCounts.pending})
                   </button>
                   <button 
                     className={`filter-tab ${selectedFilter === 'completed' ? 'active' : ''}`}
-                    onClick={() => setSelectedFilter('completed')}
+                    onClick={() => handleFilterChange('completed')}
                   >
                     Completed ({filterCounts.completed})
                   </button>
                   <button 
                     className={`filter-tab ${selectedFilter === 'rejected' ? 'active' : ''}`}
-                    onClick={() => setSelectedFilter('rejected')}
+                    onClick={() => handleFilterChange('rejected')}
                   >
                     Rejected ({filterCounts.rejected})
                   </button>
@@ -527,7 +607,7 @@ const DashboardOverview = ({
                     type="text"
                     placeholder="Search by name, purpose, or ID..."
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={handleSearchChange}
                     className="search-input"
                   />
                 </div>
@@ -557,57 +637,18 @@ const DashboardOverview = ({
                         : 'No recent requests found'
                       }
                     </span>
-                    {selectedFilter === 'new' && (
-                      <div style={{ marginTop: '10px', fontSize: '14px', color: '#999' }}>
-                        New requests are those created within the last 24 hours
-                      </div>
-                    )}
-                    {selectedFilter === 'rejected' && (
-                      <div style={{ marginTop: '10px', fontSize: '14px', color: '#999' }}>
-                        Rejected requests are those that have been cancelled or rejected
-                      </div>
-                    )}
                   </div>
                 ) : (
-                  filteredRequests.map((request) => {
-                    const statusBadge = getStatusBadge(request.status_current, request.is_draft);
-                    const isNew = isNewRequest(request);
-                    
-                    return (
-                      <div 
-                        key={request.req_id} 
-                        className={`activity-item ${isNew ? 'new-item' : ''}`}
-                        onClick={() => handleRequestClick(request)}
-                      >
-                        <div className="activity-main">
-                          <div className="activity-info">
-                            <div className="activity-title">
-                              <span className="request-id">#{request.req_id}</span>
-                              <span className="requester-name">
-                                {request.req_fname} {request.req_lname}
-                              </span>
-                              {isNew && <span className="new-badge">NEW</span>}
-                            </div>
-                            <div className="activity-purpose">
-                              Purpose: {request.req_purpose || 'Not specified'}
-                            </div>
-                            <div className="activity-date">
-                              Created: {formatDate(request.req_date)}
-                            </div>
-                          </div>
-                          
-                          <div className="activity-meta">
-                            <span className={statusBadge.className}>
-                              {statusBadge.text}
-                            </span>
-                            <div className="activity-time">
-                              {formatDate(request.req_date)}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })
+                  filteredRequests.map((request) => (
+                    <ActivityItem
+                      key={request.req_id}
+                      request={request}
+                      onRequestClick={handleRequestClick}
+                      isNewRequest={isNewRequest}
+                      getStatusBadge={getStatusBadge}
+                      formatDate={formatDate}
+                    />
+                  ))
                 )}
               </div>
 
@@ -890,4 +931,17 @@ const DashboardOverview = ({
   );
 };
 
-export default DashboardOverview;
+// Add React.memo and optimize chart rendering with custom comparison
+export default React.memo(DashboardOverview, (prevProps, nextProps) => {
+  // Deep comparison for stats object
+  const statsEqual = JSON.stringify(prevProps.stats) === JSON.stringify(nextProps.stats);
+  
+  // Compare allRequestsData length and basic properties
+  const allRequestsDataEqual = 
+    (prevProps.allRequestsData?.length || 0) === (nextProps.allRequestsData?.length || 0) &&
+    prevProps.currentUserId === nextProps.currentUserId &&
+    prevProps.isAdminView === nextProps.isAdminView;
+  
+  // If both are equal, skip re-render
+  return statsEqual && allRequestsDataEqual;
+});

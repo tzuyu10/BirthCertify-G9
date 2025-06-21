@@ -17,7 +17,7 @@ import RoleBasedRedirect from "./components/RoleBasedRedirect";
 
 // Pages
 import LandingPage from "./pages/LandingPage";
-import SignUp from "./pages/Signup";
+import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -27,7 +27,9 @@ import Unauthorized from "./components/Unauthorized";
 import Owner from "./pages/OwnerInfo";
 import MyDraftsPage from "./components/MyDrafts";
 import InvoiceViewer from "./components/InvoiceViewer";
-import DownloadBox from "./components/DownloadBox"; // ✅ Newly added
+import DownloadBox from "./components/DownloadBox"; 
+import ResetPasswordForm from './components/ResetPasswordForm';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 // Loading Spinner
 const LoadingSpinner = () => (
@@ -78,6 +80,8 @@ function AppRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
+        <Route path="/reset-password-form" element={<ResetPasswordForm />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
@@ -165,6 +169,10 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
+      {/* ADD THESE ROUTES FOR AUTHENTICATED USERS */}
+      <Route path="/reset-password-form" element={<ResetPasswordForm />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
 
       <Route path="/unauthorized" element={<Unauthorized />} />
       <Route path="*" element={<Navigate to="/" replace />} />
