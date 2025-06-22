@@ -9,6 +9,11 @@ function OwnerPage() {
   const [loading, setLoading] = useState(false);
   const [isDraftLoaded, setIsDraftLoaded] = useState(false);
 
+  // Get today's date for max date validation
+  const today = new Date().toISOString().split('T')[0];
+  // Minimum date (100 years ago)
+  const minDate = new Date(new Date().getFullYear() - 100, 0, 1).toISOString().split('T')[0];
+
   useEffect(() => {
     // Check if we have a draft loaded
     if (currentRequestId) {
@@ -46,6 +51,7 @@ function OwnerPage() {
       setIsDraftLoaded(false);
     }
   };
+  
   //Required fields for saving as draft
   const isFormValid = () => {
     const requiredFields = [
@@ -113,6 +119,9 @@ function OwnerPage() {
               value={formData.owner_fname} 
               onChange={handleChange} 
               placeholder="Enter first name" 
+              pattern="[A-Za-z\s]+"
+              title="Only letters and spaces are allowed"
+              maxLength={50}
               required 
             />
           </div>
@@ -124,6 +133,9 @@ function OwnerPage() {
               value={formData.owner_mname} 
               onChange={handleChange} 
               placeholder="Enter middle name" 
+              pattern="[A-Za-z\s]+"
+              title="Only letters and spaces are allowed"
+              maxLength={50}
               required 
             />
           </div>
@@ -135,6 +147,9 @@ function OwnerPage() {
               value={formData.owner_lname} 
               onChange={handleChange} 
               placeholder="Enter last name" 
+              pattern="[A-Za-z\s]+"
+              title="Only letters and spaces are allowed"
+              maxLength={50}
               required 
             />
           </div>
@@ -146,6 +161,9 @@ function OwnerPage() {
               value={formData.owner_suffix} 
               onChange={handleChange} 
               placeholder="Jr., Sr., III, etc."
+              pattern="[A-Za-z\s.,]+"
+              title="Only letters, spaces, commas, and periods are allowed"
+              maxLength={10}
             />
           </div>
           <div className="owner-input-box-sex">
@@ -163,6 +181,9 @@ function OwnerPage() {
               id="owner_dob" 
               value={formData.owner_dob} 
               onChange={handleChange} 
+              min={minDate}
+              max={today}
+              title="Date must be between 100 years ago and today"
               required 
             />
           </div>
@@ -174,6 +195,9 @@ function OwnerPage() {
               value={formData.place_of_birth} 
               onChange={handleChange} 
               placeholder="City, Province, Country" 
+              pattern="[A-Za-z\s,.\\-]+"
+              title="Only letters, spaces, commas, periods, and hyphens are allowed"
+              maxLength={100}
               required 
             />
           </div>
@@ -184,6 +208,9 @@ function OwnerPage() {
               id="owner_nationality" 
               value={formData.owner_nationality} 
               onChange={handleChange} 
+              pattern="[A-Za-z\s]+"
+              title="Only letters and spaces are allowed"
+              maxLength={30}
               required 
             />
           </div>
@@ -199,6 +226,9 @@ function OwnerPage() {
               value={formData.house_no} 
               onChange={handleChange} 
               placeholder="911"
+              pattern="[0-9A-Za-z\\s#\\-]+"
+              title="Only numbers, letters, spaces, # and - are allowed"
+              maxLength={20}
             />
           </div>
           <div className="owner-input-box">
@@ -209,6 +239,9 @@ function OwnerPage() {
               value={formData.street} 
               onChange={handleChange} 
               placeholder="Main Street"
+              pattern="[A-Za-z0-9\\s.,#\\-]+"
+              title="Only letters, numbers, spaces, and common punctuation are allowed"
+              maxLength={100}
             />
           </div>
           <div className="owner-input-box">
@@ -219,6 +252,9 @@ function OwnerPage() {
               value={formData.barangay} 
               onChange={handleChange} 
               placeholder="Barangay name"
+              pattern="[A-Za-z0-9\\s.,#\\-]+"
+              title="Only letters, numbers, spaces, and common punctuation are allowed"
+              maxLength={50}
             />
           </div>
           <div className="owner-input-box">
@@ -229,6 +265,9 @@ function OwnerPage() {
               value={formData.city} 
               onChange={handleChange} 
               placeholder="City name"
+              pattern="[A-Za-z\\s.\\-]+"
+              title="Only letters, spaces, periods, and hyphens are allowed"
+              maxLength={50}
             />
           </div>
           <div className="owner-input-box">
@@ -239,6 +278,9 @@ function OwnerPage() {
               value={formData.province} 
               onChange={handleChange} 
               placeholder="Province name"
+              pattern="[A-Za-z\\s.\\-]+"
+              title="Only letters, spaces, periods, and hyphens are allowed"
+              maxLength={50}
             />
           </div>
           <div className="owner-input-box">
@@ -249,6 +291,9 @@ function OwnerPage() {
               value={formData.country} 
               onChange={handleChange} 
               placeholder="Country name"
+              pattern="[A-Za-z\\s.\\-]+"
+              title="Only letters, spaces, periods, and hyphens are allowed"
+              maxLength={50}
             />
           </div>
         </div>
@@ -263,6 +308,9 @@ function OwnerPage() {
               value={formData.f_fname} 
               onChange={handleChange}
               placeholder="Father's first name" 
+              pattern="[A-Za-z\s]+"
+              title="Only letters and spaces are allowed"
+              maxLength={50}
             />
           </div>
           <div className="owner-input-box">
@@ -273,6 +321,9 @@ function OwnerPage() {
               value={formData.f_mname} 
               onChange={handleChange} 
               placeholder="Father's middle name"
+              pattern="[A-Za-z\s]+"
+              title="Only letters and spaces are allowed"
+              maxLength={50}
             />
           </div>
           <div className="owner-input-box">
@@ -283,11 +334,14 @@ function OwnerPage() {
               value={formData.f_lname} 
               onChange={handleChange} 
               placeholder="Father's last name"
+              pattern="[A-Za-z\s]+"
+              title="Only letters and spaces are allowed"
+              maxLength={50}
             />
           </div>
         </div>
 
-        <h2 className="owner-section-title">Mother's Information</h2>
+        <h2 className="owner-section-title">Mother's Maiden Information</h2>
         <div className="owner-form-grid">
           <div className="owner-input-box">
             <label>First Name</label>
@@ -297,6 +351,9 @@ function OwnerPage() {
               value={formData.m_fname} 
               onChange={handleChange} 
               placeholder="Mother's first name"
+              pattern="[A-Za-z\s]+"
+              title="Only letters and spaces are allowed"
+              maxLength={50}
             />
           </div>
           <div className="owner-input-box">
@@ -307,6 +364,9 @@ function OwnerPage() {
               value={formData.m_mname} 
               onChange={handleChange} 
               placeholder="Mother's middle name"
+              pattern="[A-Za-z\s]+"
+              title="Only letters and spaces are allowed"
+              maxLength={50}
             />
           </div>
           <div className="owner-input-box">
@@ -317,6 +377,9 @@ function OwnerPage() {
               value={formData.m_lname} 
               onChange={handleChange} 
               placeholder="Mother's last name"
+              pattern="[A-Za-z\s]+"
+              title="Only letters and spaces are allowed"
+              maxLength={50}
             />
           </div>
         </div>
