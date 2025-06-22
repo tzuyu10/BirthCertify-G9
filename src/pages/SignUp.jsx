@@ -152,7 +152,8 @@ const SignUp = () => {
               <input
                 id="contact"
                 type="tel"
-                placeholder="Enter your contact number"
+                placeholder="+63 **********"
+                pattern ="^\+63\d{10}$"
                 value={contact}
                 onChange={(e) => setContact(e.target.value)}
                 required

@@ -190,6 +190,7 @@ function RequestPage() {
                 id="contact"
                 className="request-input"
                 placeholder="+63 **********"
+                pattern ="^\+63\d{10}$"
                 maxLength="13"
                 value={formData.contact}
                 onChange={handleInputChange}
