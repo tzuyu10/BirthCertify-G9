@@ -19,44 +19,53 @@ const Dashboard = () => {
   const [lastRefresh, setLastRefresh] = useState(null);
   const [showTerms, setShowTerms] = useState(false);
 
-  // Memoize calculated stats to prevent unnecessary recalculations
+  // FIXED: Updated stats calculation to match working version data structure
   const stats = useMemo(() => {
+    console.log('📊 Calculating stats for requests:', requestsData.map(req => ({ 
+      id: req.req_id, 
+      status: req.status?.status_current 
+    })));
+
     const pending = requestsData.filter(req => 
-      req.status_current === 'pending'
+      req.status?.status_current === 'pending'
     ).length;
     
     const completed = requestsData.filter(req => 
-      req.status_current === 'completed' || 
-      req.status_current === 'approved'
+      req.status?.status_current === 'approved' ||
+      req.status?.status_current === 'completed'
     ).length;
     
     const rejected = requestsData.filter(req => 
-      req.status_current === 'cancelled' ||
-      req.status_current === 'rejected'
+      req.status?.status_current === 'cancelled' ||
+      req.status?.status_current === 'rejected'
     ).length;
 
+    console.log('📊 Stats calculated:', { pending, completed, rejected });
     return { pending, completed, rejected };
   }, [requestsData]);
 
-  // Memoize notifications to prevent unnecessary recalculations
+  // FIXED: Updated notifications to match working version data structure
   const notifications = useMemo(() => {
     const recentRequests = requestsData
       .filter(req => !req.is_draft)
       .slice(0, 4)
-      .map(req => `Request #${req.req_id} is ${req.status_current || 'pending'}`)
+      .map(req => `Request #${req.req_id} is ${req.status?.status_current || 'pending'}`)
       .reverse();
     
+    console.log('🔔 Notifications generated:', recentRequests);
     return recentRequests;
   }, [requestsData]);
 
-  // Memoize download file
+  // FIXED: Updated download file logic to match working version data structure
   const downloadFile = useMemo(() => {
     const completedRequest = requestsData.find(req => 
-      req.status_current === 'completed' || 
-      req.status_current === 'approved'
+      req.status?.status_current === 'approved' ||
+      req.status?.status_current === 'completed'
     );
     
-    return completedRequest ? `Payment Voucher - Request #${completedRequest.req_id}` : "";
+    const fileName = completedRequest ? `Payment Voucher - Request #${completedRequest.req_id}` : "";
+    console.log('📄 Download file:', fileName);
+    return fileName;
   }, [requestsData]);
 
   // Enhanced terms acceptance check
@@ -89,7 +98,7 @@ const Dashboard = () => {
     window.location.href = '/';
   }, [user]);
 
-  // OPTIMIZED: Using the latest_request_status view to avoid relationship ambiguity
+  // FIXED: Using the working pattern from old version
   const fetchDashboardData = useCallback(async () => {
     if (isNavigating) return;
     
@@ -127,17 +136,10 @@ const Dashboard = () => {
         console.log('👤 Current user:', currentUser.id);
       }
 
-      // OPTIMIZED: Using the latest_request_status view to get requests with their latest status
-      // This eliminates the relationship ambiguity error
-      const { data: requestsWithStatus, error: requestsError } = await supabase
+      // FIXED: Use the same pattern as working version - get requests first
+      const { data: requests, error: requestsError } = await supabase
         .from('requester')
-        .select(`
-          *,
-          latest_request_status!inner(
-            status_current,
-            status_update_date
-          )
-        `)
+        .select('*')
         .eq('user_id', currentUser.id)
         .order('req_date', { ascending: false });
 
@@ -145,18 +147,38 @@ const Dashboard = () => {
         throw new Error(`Database error: ${requestsError.message}`);
       }
 
-      console.log('📋 Fetched requests with status:', requestsWithStatus?.length || 0);
+      console.log('📋 Fetched requests:', requests?.length || 0);
+
+      // FIXED: Get status for each request individually (same as working version)
+      const requestsWithStatus = await Promise.all(
+        (requests || []).map(async (req) => {
+          if (isNavigating) return req;
+          
+          const { data: statusData, error: statusError } = await supabase
+            .from('status')
+            .select('*')
+            .eq('req_id', req.req_id)
+            .order('status_update_date', { ascending: false })
+            .limit(1);
+          
+          if (statusError) {
+            console.warn(`⚠️ Error getting status for request ${req.req_id}:`, statusError);
+          }
+
+          const currentStatus = statusData?.[0]?.status_current || 'pending';
+          console.log(`📊 Request ${req.req_id} status: ${currentStatus}`);
+          
+          return {
+            ...req,
+            status: statusData?.[0] || { status_current: 'pending' }
+          };
+        })
+      );
 
       if (isNavigating) return;
 
-      // Simplified data processing since the view already gives us the latest status
-      const processedData = (requestsWithStatus || []).map(req => ({
-        ...req,
-        status_current: req.latest_request_status?.status_current || 'pending'
-      }));
-
       if (!isNavigating) {
-        setRequestsData(processedData);
+        setRequestsData(requestsWithStatus);
         setLastRefresh(new Date().toLocaleTimeString());
         console.log('✅ Dashboard data updated successfully');
       }
@@ -192,7 +214,7 @@ const Dashboard = () => {
     }
   }, [user, loading, isNavigating, checkTermsAcceptance]);
 
-  // OPTIMIZED: Single subscription channel for all changes
+  // FIXED: Enhanced real-time subscription with better debugging
   useEffect(() => {
     if (!user || isNavigating) return;
 
@@ -213,6 +235,7 @@ const Dashboard = () => {
             // Debounce the refresh to avoid multiple calls
             setTimeout(() => {
               if (!isNavigating) {
+                console.log('🔄 Refreshing data due to status change');
                 fetchDashboardData();
               }
             }, 500);
@@ -232,6 +255,7 @@ const Dashboard = () => {
             // Debounce the refresh
             setTimeout(() => {
               if (!isNavigating) {
+                console.log('🔄 Refreshing data due to request change');
                 fetchDashboardData();
               }
             }, 500);
