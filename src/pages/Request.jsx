@@ -17,6 +17,7 @@ function RequestPage() {
   const [showOtherPurpose, setShowOtherPurpose] = useState(false);
   const [backgroundLoaded, setBackgroundLoaded] = useState(false);
   const [backgroundError, setBackgroundError] = useState(false);
+  const [backgroundImageUrl, setBackgroundImageUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const { createRequest } = useRequest();
@@ -26,16 +27,7 @@ function RequestPage() {
   // Preload background image with optimization
   useEffect(() => {
     const img = new Image();
-    img.onload = () => {
-      setBackgroundLoaded(true);
-      setBackgroundError(false);
-    };
-    img.onerror = () => {
-      setBackgroundLoaded(false);
-      setBackgroundError(true);
-    };
     
-    // Prioritize most likely paths first
     const imagePaths = [
       '/assets/requestBG.png',
       '/images/requestBG.png',
@@ -46,11 +38,21 @@ function RequestPage() {
     const tryLoadImage = (index = 0) => {
       if (index >= imagePaths.length) {
         setBackgroundError(true);
+        setBackgroundLoaded(false);
         return;
       }
       
+      img.onload = () => {
+        setBackgroundLoaded(true);
+        setBackgroundError(false);
+        setBackgroundImageUrl(imagePaths[index]);
+      };
+      
+      img.onerror = () => {
+        tryLoadImage(index + 1);
+      };
+      
       img.src = imagePaths[index];
-      img.onerror = () => tryLoadImage(index + 1);
     };
     
     tryLoadImage();
@@ -145,9 +147,20 @@ function RequestPage() {
       </div>
     );
   }
+
+  // Dynamic style for background image
+  const backgroundStyle = backgroundLoaded && backgroundImageUrl ? {
+    backgroundImage: `url(${backgroundImageUrl})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat'
+  } : {};
   
   return (
-    <div className={`request-main-div ${backgroundLoaded ? 'background-loaded' : ''} ${backgroundError ? 'background-error' : ''}`}>
+    <div 
+      className={`request-main-div ${backgroundLoaded ? 'background-loaded' : ''} ${backgroundError ? 'background-error' : ''}`}
+      style={backgroundStyle}
+    >
       <Navbar />
       <div className="request-page">
         <div className="request-wrapper">
@@ -190,7 +203,6 @@ function RequestPage() {
                 id="contact"
                 className="request-input"
                 placeholder="+63 **********"
-                pattern ="^\+63\d{10}$"
                 maxLength="13"
                 value={formData.contact}
                 onChange={handleInputChange}
