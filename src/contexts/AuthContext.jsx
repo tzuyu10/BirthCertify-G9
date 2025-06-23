@@ -439,7 +439,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  // Enhanced reset password with timeout
+  // Enhanced reset password with timeout and improved redirect URL
   const resetPassword = useCallback(async (email) => {
     try {
       const resetPromise = supabase.auth.resetPasswordForEmail(email, {
