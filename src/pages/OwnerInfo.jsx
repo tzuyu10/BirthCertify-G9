@@ -8,6 +8,7 @@ function OwnerPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [isDraftLoaded, setIsDraftLoaded] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   // Get today's date for max date validation
   const today = new Date().toISOString().split('T')[0];
@@ -24,6 +25,17 @@ function OwnerPage() {
   const handleSubmit = async (isDraft = false) => {
     if (loading) return;
 
+    // Show confirmation overlay for final submission only
+    if (!isDraft) {
+      setShowConfirmation(true);
+      return;
+    }
+
+    // Direct submission for drafts
+    await processSubmission(isDraft);
+  };
+
+  const processSubmission = async (isDraft = false) => {
     try {
       setLoading(true);
       await handleOwnerSubmission(isDraft);
@@ -42,7 +54,16 @@ function OwnerPage() {
       alert(`${isDraft ? 'Save as draft' : 'Submission'} failed. Please try again.`);
     } finally {
       setLoading(false);
+      setShowConfirmation(false);
     }
+  };
+
+  const handleConfirm = () => {
+    processSubmission(false);
+  };
+
+  const handleCancel = () => {
+    setShowConfirmation(false);
   };
 
   const handleNewForm = () => {
@@ -69,6 +90,226 @@ function OwnerPage() {
 
   return (
     <div className="owner-page-container">
+      {/* Confirmation Overlay */}
+      {showConfirmation && (
+        <div className="confirmation-overlay" style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div className="confirmation-dialog" style={{
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            padding: '24px',
+            maxWidth: '600px',
+            width: '90%',
+            maxHeight: '80vh',
+            overflowY: 'auto',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
+            animation: 'fadeIn 0.3s ease-out',
+            scrollbarWidth: 'none'
+          }}>
+            <div style={{ marginBottom: '20px' }}>
+              <h3 style={{ 
+                margin: '0 0 12px 0', 
+                color: '#333', 
+                fontSize: '20px',
+                fontWeight: '600'
+              }}>
+                Confirm Submission
+              </h3>
+              <p style={{ 
+                margin: 0, 
+                color: '#666', 
+                lineHeight: '1.5',
+                fontSize: '16px'
+              }}>
+                Please review all information before submitting. Once submitted, you will not be able to edit this information.
+              </p>
+            </div>
+            
+            <div className="confirmation-summary" style={{
+              backgroundColor: '#f8f9fa',
+              padding: '16px',
+              borderRadius: '6px',
+              marginBottom: '20px',
+              border: '1px solid #e9ecef',
+              scrollBarWidth: 'none'
+            }}>
+              <h4 style={{ 
+                margin: '0 0 16px 0', 
+                fontSize: '16px', 
+                color: '#495057',
+                fontWeight: '600'
+              }}>
+                Complete Information Summary:
+              </h4>
+              
+              {/* Owner Information */}
+              <div style={{ marginBottom: '16px' }}>
+                <h5 style={{ 
+                  margin: '0 0 8px 0', 
+                  fontSize: '14px', 
+                  color: '#007bff',
+                  fontWeight: '600'
+                }}>
+                  Owner Information
+                </h5>
+                <div style={{ fontSize: '13px', color: '#6c757d', paddingLeft: '12px' }}>
+                  <p style={{ margin: '3px 0' }}>
+                    <strong>Name:</strong> {formData.owner_fname} {formData.owner_mname} {formData.owner_lname} {formData.owner_suffix}
+                  </p>
+                  <p style={{ margin: '3px 0' }}>
+                    <strong>Sex:</strong> {formData.owner_sex === 'M' ? 'Male' : formData.owner_sex === 'F' ? 'Female' : 'Not specified'}
+                  </p>
+                  <p style={{ margin: '3px 0' }}>
+                    <strong>Date of Birth:</strong> {formData.owner_dob || 'Not provided'}
+                  </p>
+                  <p style={{ margin: '3px 0' }}>
+                    <strong>Place of Birth:</strong> {formData.place_of_birth || 'Not provided'}
+                  </p>
+                  <p style={{ margin: '3px 0' }}>
+                    <strong>Nationality:</strong> {formData.owner_nationality || 'Not provided'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Address Information */}
+              {(formData.house_no || formData.street || formData.barangay || formData.city || formData.province || formData.country) && (
+                <div style={{ marginBottom: '16px' }}>
+                  <h5 style={{ 
+                    margin: '0 0 8px 0', 
+                    fontSize: '14px', 
+                    color: '#007bff',
+                    fontWeight: '600'
+                  }}>
+                    Address Information
+                  </h5>
+                  <div style={{ fontSize: '13px', color: '#6c757d', paddingLeft: '12px' }}>
+                    {formData.house_no && (
+                      <p style={{ margin: '3px 0' }}>
+                        <strong>House Number:</strong> {formData.house_no}
+                      </p>
+                    )}
+                    {formData.street && (
+                      <p style={{ margin: '3px 0' }}>
+                        <strong>Street:</strong> {formData.street}
+                      </p>
+                    )}
+                    {formData.barangay && (
+                      <p style={{ margin: '3px 0' }}>
+                        <strong>Barangay:</strong> {formData.barangay}
+                      </p>
+                    )}
+                    {formData.city && (
+                      <p style={{ margin: '3px 0' }}>
+                        <strong>City:</strong> {formData.city}
+                      </p>
+                    )}
+                    {formData.province && (
+                      <p style={{ margin: '3px 0' }}>
+                        <strong>Province:</strong> {formData.province}
+                      </p>
+                    )}
+                    {formData.country && (
+                      <p style={{ margin: '3px 0' }}>
+                        <strong>Country:</strong> {formData.country}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Father's Information */}
+              {(formData.f_fname || formData.f_mname || formData.f_lname) && (
+                <div style={{ marginBottom: '16px' }}>
+                  <h5 style={{ 
+                    margin: '0 0 8px 0', 
+                    fontSize: '14px', 
+                    color: '#007bff',
+                    fontWeight: '600'
+                  }}>
+                    Father's Information
+                  </h5>
+                  <div style={{ fontSize: '13px', color: '#6c757d', paddingLeft: '12px' }}>
+                    <p style={{ margin: '3px 0' }}>
+                      <strong>Name:</strong> {[formData.f_fname, formData.f_mname, formData.f_lname].filter(name => name).join(' ') || 'Not provided'}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Mother's Information */}
+              {(formData.m_fname || formData.m_mname || formData.m_lname) && (
+                <div style={{ marginBottom: '8px' }}>
+                  <h5 style={{ 
+                    margin: '0 0 8px 0', 
+                    fontSize: '14px', 
+                    color: '#007bff',
+                    fontWeight: '600'
+                  }}>
+                    Mother's Maiden Information
+                  </h5>
+                  <div style={{ fontSize: '13px', color: '#6c757d', paddingLeft: '12px' }}>
+                    <p style={{ margin: '3px 0' }}>
+                      <strong>Name:</strong> {[formData.m_fname, formData.m_mname, formData.m_lname].filter(name => name).join(' ') || 'Not provided'}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div style={{ 
+              display: 'flex', 
+              gap: '12px', 
+              justifyContent: 'flex-end' 
+            }}>
+              <button
+                onClick={handleCancel}
+                disabled={loading}
+                style={{
+                  padding: '10px 20px',
+                  border: '1px solid #ddd',
+                  backgroundColor: 'white',
+                  color: '#666',
+                  borderRadius: '4px',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  opacity: loading ? 0.6 : 1
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirm}
+                disabled={loading}
+                style={{
+                  padding: '10px 20px',
+                  border: 'none',
+                  backgroundColor: '#007bff',
+                  color: 'white',
+                  borderRadius: '4px',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  opacity: loading ? 0.6 : 1
+                }}
+              >
+                {loading ? 'Submitting...' : 'Confirm Submit'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="owner-header">
         <h1 className="owner-title">Owner Information Form</h1>
         <p className="owner-subtitle">
@@ -411,6 +652,20 @@ function OwnerPage() {
           </button>
         </div>
       </div>
+
+      {/* Add CSS for fade-in animation */}
+      <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: scale(0.9);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+      `}</style>
     </div>
   );
 }
