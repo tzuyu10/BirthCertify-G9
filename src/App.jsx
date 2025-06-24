@@ -42,7 +42,7 @@ const LoadingSpinner = () => (
       alignItems: "center",
       justifyContent: "center",
       height: "100vh",
-      background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+      background: "linear-gradient(90deg, #1976d2, #2196f3, #1976d2);",
       color: "white",
     }}
   >
@@ -50,6 +50,7 @@ const LoadingSpinner = () => (
       style={{
         border: "4px solid #f3f3f3",
         borderTop: "4px solid #3498db",
+        background: "background: linear-gradient(90deg, #1976d2, #2196f3, #1976d2);",
         borderRadius: "50%",
         width: "40px",
         height: "40px",

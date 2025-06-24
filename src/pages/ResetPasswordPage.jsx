@@ -286,9 +286,7 @@ const ResetPasswordPage = () => {
     return (
       <div 
         className={`reset-password-page ${backgroundLoaded ? 'background-loaded' : ''} ${backgroundError ? 'background-error' : ''}`}
-        style={{
-          backgroundImage: backgroundLoaded && !backgroundError ? 'url(./Login.png)' : 'none'
-        }}
+
       >
         {/* Loading overlay for background */}
         {!backgroundLoaded && !backgroundError && (
@@ -321,7 +319,7 @@ const ResetPasswordPage = () => {
       <div 
         className={`reset-password-page ${backgroundLoaded ? 'background-loaded' : ''} ${backgroundError ? 'background-error' : ''}`}
         style={{
-          backgroundImage: backgroundLoaded && !backgroundError ? 'url(./Login.png)' : 'none'
+          backgroundImage: backgroundLoaded && !backgroundError ? 'linear-gradient(135deg, #87CEEB 0%, #4A90E2 25%, #2E86AB 50%, #4A90E2 75%, #87CEEB 100%)' : 'none'
         }}
       >
         {/* Loading overlay for background */}
@@ -363,7 +361,7 @@ const ResetPasswordPage = () => {
     <div 
       className={`reset-password-page ${backgroundLoaded ? 'background-loaded' : ''} ${backgroundError ? 'background-error' : ''}`}
       style={{
-        backgroundImage: backgroundLoaded && !backgroundError ? 'url(./Login.png)' : 'none'
+        backgroundImage: backgroundLoaded && !backgroundError ? 'linear-gradient(135deg, #87CEEB 0%, #4A90E2 25%, #2E86AB 50%, #4A90E2 75%, #87CEEB 100%)' : 'none'
       }}
     >
       {/* Loading overlay for background */}

@@ -144,7 +144,10 @@
   gap: 20px;
 }
 
+/* FIXED DRAFT CARD - Prevents stretching */
 .draft-card {
+  display: flex;
+  flex-direction: column;
   background-color: #fff;
   border: 1px solid #444;
   border-radius: 8px;
@@ -152,6 +155,11 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
   position: relative;
+  
+  /* Fixed height to prevent stretching */
+  height: 240px;
+  min-height: 240px;
+  max-height: 240px;
 }
 
 .draft-card:hover:not(.loading) {
@@ -160,12 +168,22 @@
   border-color: #555;
 }
 
+/* FIXED LOADING STATE - Maintains same dimensions */
 .draft-card.loading {
+  /* Maintain the same dimensions */
+  height: 240px;
+  min-height: 240px;
+  max-height: 240px;
+    
+  /* Visual feedback without changing size */
   opacity: 0.7;
   pointer-events: none;
 }
 
+/* FIXED LAYOUT SECTIONS */
 .draft-info {
+  flex-grow: 0;
+  flex-shrink: 0;
   margin-bottom: 15px;
 }
 
@@ -174,6 +192,11 @@
   color: #333;
   font-size: 1.25rem;
   font-weight: 600;
+  
+  /* Prevent text overflow from affecting height */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .draft-subtitle {
@@ -181,6 +204,11 @@
   color: #444444;
   font-size: 16px;
   font-weight: bold;
+  
+  /* Prevent text overflow */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .draft-date {
@@ -190,6 +218,7 @@
 }
 
 .completion-section {
+  flex-grow: 1;
   margin-bottom: 20px;
 }
 
@@ -227,9 +256,12 @@
   border-radius: 3px;
 }
 
+/* FIXED BUTTONS - Anchored to bottom */
 .draft-buttons {
   display: flex;
   gap: 10px;
+  margin-top: auto; /* Push to bottom */
+  flex-shrink: 0;
 }
 
 .btn-continue {
@@ -243,6 +275,10 @@
   font-size: 14px;
   font-weight: 500;
   transition: background-color 0.2s ease, opacity 0.2s ease;
+  
+  /* Ensure consistent button height */
+  height: 40px;
+  min-height: 40px;
 }
 
 .btn-continue:hover:not(:disabled) {
@@ -264,6 +300,10 @@
   font-size: 14px;
   font-weight: 500;
   transition: background-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+  
+  /* Ensure consistent button height */
+  height: 40px;
+  min-height: 40px;
 }
 
 .btn-delete:hover:not(:disabled) {
@@ -303,6 +343,17 @@
 
   .draft-card {
     padding: 20px;
+    /* Slightly reduce height on mobile for better fit */
+    height: 260px;
+    min-height: 260px;
+    max-height: 260px;
+  }
+
+  /* Ensure loading state maintains mobile dimensions */
+  .draft-card.loading {
+    height: 260px;
+    min-height: 260px;
+    max-height: 260px;
   }
 
   .no-drafts {
@@ -337,15 +388,29 @@
 
   .draft-card {
     padding: 16px;
+    /* Further adjust height for small screens */
+    height: 240px;
+    min-height: 240px;
+    max-height: 240px;
+  }
+
+  /* Ensure loading state maintains small screen dimensions */
+  .draft-card.loading {
+    height: 240px;
+    min-height: 240px;
+    max-height: 240px;
   }
 
   .draft-buttons {
     flex-direction: column;
+    gap: 8px;
   }
 
   .btn-continue,
   .btn-delete {
     padding: 12px 16px;
+    height: 44px;
+    min-height: 44px;
   }
 }
 
