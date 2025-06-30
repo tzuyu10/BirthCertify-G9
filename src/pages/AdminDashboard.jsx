@@ -4,11 +4,13 @@ import { supabase } from "../../supabase";
 import DashboardOverview from "../components/DashboardOverview";
 import ManageRequests from "../pages/ManageRequests";
 import "../styles/AdminDashboard.css";
+import AdminUtilities from "../components/AdminUtilities";
 import { 
   IoBarChartSharp, 
   IoPeopleSharp, 
   IoRefreshCircleSharp, 
-  IoExitSharp
+  IoExitSharp,
+  IoSettingsSharp 
 } from 'react-icons/io5';
 
 function AdminDashboard() {
@@ -308,6 +310,13 @@ function AdminDashboard() {
               <span className="nav-item-icon"><IoPeopleSharp /></span>
               Manage Request
             </li>
+            <li
+                className={`nav-item ${activeTab === "utilities" ? "active" : ""}`}
+                onClick={() => handleTabChange("utilities")}
+              >
+                <span className="nav-item-icon"><IoSettingsSharp /></span>
+                Admin Utilities
+              </li>
             <li 
               className="nav-item"
               onClick={handleManualRefresh}
@@ -338,6 +347,14 @@ function AdminDashboard() {
         {activeTab === "requests" && (
           <ManageRequests />
         )}  
+
+        {activeTab === "utilities" && (
+          <AdminUtilities 
+            allRequestsData={allRequestsData}
+            users={users}
+            onRefresh={handleManualRefresh}
+          />
+        )}
       </main>
     </div>
   );

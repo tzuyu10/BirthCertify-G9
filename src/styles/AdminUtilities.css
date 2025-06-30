@@ -1,0 +1,483 @@
+/* AdminUtilities.css - Birth Certificate Management System */
+
+/* Base container styling */
+.admin-utilities {
+    padding: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    color: #000000; /* Black text everywhere */
+    background-color: #ffffff;
+    min-height: 100vh;
+  }
+  
+  /* Main heading */
+  .admin-utilities h2 {
+    color: #000000;
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 10px;
+  }
+  
+  /* Utility navigation buttons */
+  .utility-nav {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  
+  .utility-nav-button {
+    padding: 10px 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    color: #000000 !important; /* Force black text */
+    background-color: #f8f9fa;
+  }
+  
+  .utility-nav-button:hover {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+  }
+  
+  .utility-nav-button.active {
+    background-color: #007bff;
+    color: #ffffff !important; /* White text for active button only */
+    border-color: #007bff;
+  }
+  
+  /* Utility section containers */
+  .utility-section {
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 5px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .utility-section h3 {
+    color: #000000;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 8px;
+  }
+  
+  /* Form elements styling */
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .form-label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #000000;
+    font-size: 14px;
+  }
+  
+  .form-input,
+  .form-select {
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    color: #000000 !important;
+    background-color: #ffffff;
+    transition: border-color 0.3s ease;
+  }
+  
+  .form-input:focus,
+  .form-select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  }
+  
+  .form-input::placeholder {
+    color: #6c757d;
+  }
+  
+  /* Date range inputs */
+  .date-range-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  
+  .date-range-separator {
+    color: #000000;
+    font-weight: 500;
+  }
+  
+  /* Checkbox styling */
+  .checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .checkbox-item {
+    display: flex;
+    align-items: center;
+    color: #000000;
+  }
+  
+  .checkbox-item input[type="checkbox"] {
+    margin-right: 8px;
+    accent-color: #007bff;
+  }
+  
+  /* Filter controls */
+  .filter-controls {
+    margin-bottom: 15px;
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    align-items: end;
+  }
+  
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .filter-group label {
+    font-size: 12px;
+    color: #000000;
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+  
+  .filter-group input,
+  .filter-group select {
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    color: #000000 !important;
+    background-color: #ffffff;
+    min-width: 120px;
+  }
+  
+  /* Button styling */
+  .btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+  }
+  
+  .btn-primary {
+    background-color: #007bff;
+    color: #ffffff !important;
+  }
+  
+  .btn-primary:hover:not(:disabled) {
+    background-color: #0056b3;
+  }
+  
+  .btn-success {
+    background-color: #28a745;
+    color: #ffffff !important;
+  }
+  
+  .btn-success:hover:not(:disabled) {
+    background-color: #1e7e34;
+  }
+  
+  .btn-secondary {
+    background-color: #6c757d;
+    color: #ffffff !important;
+  }
+  
+  .btn-secondary:hover:not(:disabled) {
+    background-color: #545b62;
+  }
+  
+  .btn-large {
+    padding: 12px 24px;
+    font-size: 16px;
+  }
+  
+  .btn:disabled {
+    background-color: #ccc !important;
+    color: #666 !important;
+    cursor: not-allowed;
+  }
+  
+  /* Control buttons container */
+  .control-buttons {
+    margin-bottom: 15px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  
+  /* Table styling */
+  .table-container {
+    overflow-x: auto;
+    max-height: 500px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    color: #000000 !important;
+    background-color: #ffffff;
+  }
+  
+  .data-table thead {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fa;
+    z-index: 10;
+  }
+  
+  .data-table th {
+    border: 1px solid #ddd;
+    padding: 12px 8px;
+    text-align: left;
+    cursor: pointer;
+    min-width: 100px;
+    color: #000000 !important;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background-color: #f8f9fa;
+  }
+  
+  .data-table th:hover {
+    background-color: #e9ecef;
+  }
+  
+  .data-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #000000 !important;
+    background-color: inherit;
+  }
+  
+  .data-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  
+  .data-table tbody tr:hover {
+    background-color: #f5f5f5;
+  }
+  
+  /* Table info text */
+  .table-info {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #000000;
+    font-weight: 500;
+    padding: 8px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+  }
+  
+  /* No data message */
+  .no-data-message {
+    padding: 40px 20px;
+    text-align: center;
+    color: #000000;
+    font-size: 16px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    margin: 20px 0;
+  }
+  
+  /* Advanced search placeholder */
+  .search-placeholder {
+    padding: 40px 20px;
+    text-align: center;
+    color: #000000;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+  }
+  
+  .search-placeholder h4 {
+    color: #000000;
+    margin-bottom: 15px;
+  }
+  
+  .search-placeholder p {
+    color: #000000;
+    margin-bottom: 10px;
+  }
+  
+  .search-placeholder ul {
+    text-align: left;
+    max-width: 400px;
+    margin: 0 auto 20px;
+    color: #000000;
+  }
+  
+  .search-placeholder li {
+    color: #000000;
+    margin-bottom: 5px;
+  }
+  
+  .search-placeholder .coming-soon {
+    margin-top: 20px;
+    font-style: italic;
+    color: #000000;
+    font-weight: 500;
+  }
+  
+  /* Loading overlay */
+  .loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+  }
+  
+  .loading-content {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    max-width: 300px;
+  }
+  
+  .loading-title {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #000000;
+    font-weight: 600;
+  }
+  
+  .loading-message {
+    color: #000000;
+    font-size: 14px;
+  }
+  
+  /* Export options styling */
+  .export-format-group {
+    margin-bottom: 15px;
+  }
+  
+  .export-format-select {
+    width: 200px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    color: #000000 !important;
+    background-color: #ffffff;
+  }
+  
+  /* Responsive design */
+  @media (max-width: 768px) {
+    .admin-utilities {
+      padding: 10px;
+    }
+    
+    .utility-nav {
+      flex-direction: column;
+    }
+    
+    .utility-nav-button {
+      width: 100%;
+      text-align: center;
+    }
+    
+    .filter-controls {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    
+    .date-range-container {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+    }
+    
+    .control-buttons {
+      flex-direction: column;
+    }
+    
+    .btn {
+      width: 100%;
+    }
+    
+    .table-container {
+      font-size: 10px;
+    }
+    
+    .data-table th,
+    .data-table td {
+      padding: 6px 4px;
+      min-width: 80px;
+    }
+  }
+  
+  /* Ensure all text elements are black */
+  * {
+    color: inherit;
+  }
+  
+  .admin-utilities,
+  .admin-utilities * {
+    color: #000000;
+  }
+  
+  /* Override any inherited colors */
+  .admin-utilities input,
+  .admin-utilities select,
+  .admin-utilities textarea,
+  .admin-utilities label,
+  .admin-utilities span,
+  .admin-utilities div,
+  .admin-utilities p,
+  .admin-utilities h1,
+  .admin-utilities h2,
+  .admin-utilities h3,
+  .admin-utilities h4,
+  .admin-utilities h5,
+  .admin-utilities h6,
+  .admin-utilities li,
+  .admin-utilities td,
+  .admin-utilities th {
+    color: #000000 !important;
+  }
+  
+  /* Exception for buttons with specific background colors */
+  .utility-nav-button.active,
+  .btn-primary,
+  .btn-success,
+  .btn-secondary {
+    color: #ffffff !important;
+  }
+  
+  /* Ensure placeholders are visible but not black */
+  .admin-utilities input::placeholder,
+  .admin-utilities textarea::placeholder {
+    color: #6c757d !important;
+  }
