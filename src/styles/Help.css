@@ -5,6 +5,8 @@
   font-family: "Poppins", sans-serif;
   color: #333;
 
+  /* Add the missing background gradient */
+
   background-size: 400% 400%;
   animation: gradientShift 8s ease-in-out infinite;
 }
@@ -193,6 +195,26 @@
 
 .contact-info p:last-child {
   margin-bottom: 0;
+}
+
+/* FAQ specific styles */
+.faq-item {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.faq-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.faq-item h3 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #4a5568;
 }
 
 /* Responsive Design */

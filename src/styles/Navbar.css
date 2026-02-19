@@ -132,3 +132,36 @@
   left: 50%;
   transform: translateX(-50%);
 }
+
+/* Logout button loading state */
+.logout button.logging-out {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.logout button:disabled {
+  pointer-events: none;
+}
+
+/* Spinning animation for loading icon */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+/* Optional: Add transition for smoother state changes */
+.logout button {
+  transition: opacity 0.2s ease-in-out;
+}
+
+.logout button span {
+  transition: all 0.2s ease-in-out;
+}

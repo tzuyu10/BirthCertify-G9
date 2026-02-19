@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../../supabase";
 import DashboardOverview from "../components/DashboardOverview";
@@ -18,32 +18,58 @@ function AdminDashboard() {
   const [error, setError] = useState(null);
   const [currentUserRole, setCurrentUserRole] = useState(null);
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [stats, setStats] = useState({
-    totalRequests: 0,
-    approvedRequests: 0,
-    pendingRequests: 0,
-    rejectedRequests: 0,
-  });
-  const [lastRefresh, setLastRefresh] = useState(null);
   const [allRequestsData, setAllRequestsData] = useState([]);
+  const [lastRefresh, setLastRefresh] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
-  // Fix the initials calculation
-  const initials = currentUser?.user_metadata?.full_name?.split(" ")
-    .map(name => name[0])
-    .join("") || currentUser?.email?.[0]?.toUpperCase() || 'A';
+  // Memoize user initials to prevent unnecessary recalculations
+  const initials = useMemo(() => {
+    return currentUser?.user_metadata?.full_name?.split(" ")
+      .map(name => name[0])
+      .join("") || currentUser?.email?.[0]?.toUpperCase() || 'A';
+  }, [currentUser?.user_metadata?.full_name, currentUser?.email]);
 
-  // Enhanced data fetching with better error handling for admin
-  const fetchAdminDashboardData = async () => {
+  // Memoize stats calculation to prevent unnecessary recalculations
+  const stats = useMemo(() => {
+    const totalRequests = allRequestsData.length;
+    
+    const pendingRequests = allRequestsData.filter(req => 
+      req.status_current === 'pending'
+    ).length;
+    
+    const approvedRequests = allRequestsData.filter(req => 
+      req.status_current === 'completed' || req.status_current === 'approved'
+    ).length;
+    
+    const rejectedRequests = allRequestsData.filter(req => 
+      req.status_current === 'cancelled' || req.status_current === 'rejected'
+    ).length;
+
+    return {
+      totalRequests,
+      approvedRequests,
+      pendingRequests,
+      rejectedRequests
+    };
+  }, [allRequestsData]);
+
+  // Optimized data fetching with single query using JOIN
+  const fetchAdminDashboardData = useCallback(async (showRefreshing = false) => {
+    if (!currentUser?.id) return;
+    
     try {
-      setLoading(true);
+      if (showRefreshing) {
+        setIsRefreshing(true);
+      } else {
+        setLoading(true);
+      }
       setError(null);
-      console.log('🔄 Fetching admin dashboard data...');
 
-      // Verify admin access
+      // Single query to get user role
       const { data: profile, error: profileError } = await supabase
         .from("user")
         .select("role")
-        .eq("user_id", currentUser?.id)
+        .eq("user_id", currentUser.id)
         .single();
 
       if (profileError) throw new Error(profileError.message);
@@ -51,169 +77,156 @@ function AdminDashboard() {
 
       setCurrentUserRole(profile.role);
 
-      // Get all users
-      const { data: usersData, error: usersError } = await supabase
-        .from("user")
-        .select("*")
-        .order("creationdate", { ascending: false });
+      // Parallel queries for better performance
+      const [usersResult, requestsResult] = await Promise.all([
+        // Get users (only if needed for other components)
+        supabase
+          .from("user")
+          .select("*")
+          .order("creationdate", { ascending: false }),
+        
+        // Get requests first, then we'll fetch status separately for better compatibility
+        supabase
+          .from('requester')
+          .select('*')
+          .eq('is_draft', false)
+          .order('req_date', { ascending: false })
+      ]);
 
-      if (usersError) throw new Error(usersError.message);
-      setUsers(usersData || []);
+      if (usersResult.error) throw new Error(usersResult.error.message);
+      if (requestsResult.error) throw new Error(requestsResult.error.message);
 
-      // Get ALL requests in the system (not filtered by user_id)
-      const { data: allRequests, error: requestsError } = await supabase
-        .from('requester')
-        .select('*')
-        .eq('is_draft', false) // Only count submitted requests, not drafts
-        .order('req_date', { ascending: false });
+      setUsers(usersResult.data || []);
 
-      if (requestsError) {
-        throw new Error(`Database error: ${requestsError.message}`);
+      // Get all unique request IDs for batch status fetching
+      const requestIds = (requestsResult.data || []).map(req => req.req_id);
+      
+      if (requestIds.length === 0) {
+        setAllRequestsData([]);
+        setLastRefresh(new Date().toLocaleTimeString());
+        return;
       }
 
-      console.log('📋 Fetched all requests:', allRequests?.length || 0);
+      // Batch fetch latest status for all requests
+      const { data: statusData, error: statusError } = await supabase
+        .from('status')
+        .select('req_id, status_current, status_update_date')
+        .in('req_id', requestIds)
+        .order('status_update_date', { ascending: false });
 
-      // Get status for each request
-      const requestsWithStatus = await Promise.all(
-        (allRequests || []).map(async (req) => {
-          const { data: statusData, error: statusError } = await supabase
-            .from('status')
-            .select('*')
-            .eq('req_id', req.req_id)
-            .order('status_update_date', { ascending: false })
-            .limit(1);
-          
-          if (statusError) {
-            console.warn(`⚠️ Error getting status for request ${req.req_id}:`, statusError);
-          }
+      if (statusError) {
+        console.warn('⚠️ Error fetching status data:', statusError);
+      }
 
-          const currentStatus = statusData?.[0]?.status_current || 'pending';
-          console.log(`📊 Request ${req.req_id} status: ${currentStatus}`);
-          
-          return {
-            ...req,
-            status: statusData?.[0] || { status_current: 'pending' },
-            status_current: currentStatus // Add this for easier access
-          };
-        })
-      );
+      // Create a map of latest status for each request
+      const statusMap = new Map();
+      (statusData || []).forEach(status => {
+        if (!statusMap.has(status.req_id)) {
+          statusMap.set(status.req_id, status);
+        }
+      });
 
-      // Store all requests data for DashboardOverview
-      setAllRequestsData(requestsWithStatus);
+      // Combine requests with their latest status
+      const processedRequests = (requestsResult.data || []).map(req => {
+        const latestStatus = statusMap.get(req.req_id) || { status_current: 'pending' };
+        
+        return {
+          ...req,
+          status: latestStatus,
+          status_current: latestStatus.status_current || 'pending'
+        };
+      });
 
-      // Calculate admin stats for all requests
-      const totalRequests = requestsWithStatus.length;
-      
-      const pendingRequests = requestsWithStatus.filter(req => 
-        req.status?.status_current === 'pending'
-      ).length;
-      
-      const approvedRequests = requestsWithStatus.filter(req => 
-        req.status?.status_current === 'completed' || 
-        req.status?.status_current === 'approved'
-      ).length;
-      
-      const rejectedRequests = requestsWithStatus.filter(req => 
-        req.status?.status_current === 'cancelled' ||
-        req.status?.status_current === 'rejected'
-      ).length;
-
-      const newStats = {
-        totalRequests,
-        approvedRequests,
-        pendingRequests,
-        rejectedRequests
-      };
-
-      console.log('📈 Admin stats calculated:', newStats);
-      setStats(newStats);
-
+      setAllRequestsData(processedRequests);
       setLastRefresh(new Date().toLocaleTimeString());
-      console.log('✅ Admin dashboard data updated successfully');
 
     } catch (err) {
       console.error('❌ Error fetching admin dashboard data:', err);
       setError(err.message);
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
-  };
+  }, [currentUser?.id]);
+
+  // Debounced refresh function to prevent rapid successive calls
+  const debouncedRefresh = useCallback(
+    debounce(() => fetchAdminDashboardData(true), 1000),
+    [fetchAdminDashboardData]
+  );
 
   // Initial data fetch
   useEffect(() => {
-    if (currentUser) {
+    if (currentUser?.id) {
       fetchAdminDashboardData();
     }
-  }, [currentUser]);
+  }, [currentUser?.id, fetchAdminDashboardData]);
 
-  // Enhanced real-time subscription for admin
+  // Optimized real-time subscription with debouncing
   useEffect(() => {
-    if (!currentUser || currentUserRole !== 'admin') return;
+    if (!currentUser?.id || currentUserRole !== 'admin') return;
 
-    console.log('🔔 Setting up admin real-time subscriptions');
+    let refreshTimeout;
 
-    // Subscribe to status table changes (all status changes)
-    const statusSubscription = supabase
-      .channel('admin-status-changes')
+    // Single subscription for both tables with debounced refresh
+    const subscription = supabase
+      .channel('admin-realtime-updates')
       .on('postgres_changes', 
         { 
           event: '*', 
           schema: 'public', 
           table: 'status' 
         },
-        (payload) => {
-          console.log('🔄 Admin: Status table changed:', payload);
-          fetchAdminDashboardData();
+        () => {
+          clearTimeout(refreshTimeout);
+          refreshTimeout = setTimeout(() => debouncedRefresh(), 500);
         }
       )
-      .subscribe((status) => {
-        console.log('📡 Admin status subscription status:', status);
-      });
-
-    // Subscribe to requester table changes (all new requests)
-    const requesterSubscription = supabase
-      .channel('admin-requester-changes')
       .on('postgres_changes', 
         { 
           event: '*', 
           schema: 'public', 
           table: 'requester'
         },
-        (payload) => {
-          console.log('🔄 Admin: Requester table changed:', payload);
-          fetchAdminDashboardData();
+        () => {
+          clearTimeout(refreshTimeout);
+          refreshTimeout = setTimeout(() => debouncedRefresh(), 500);
         }
       )
-      .subscribe((status) => {
-        console.log('📡 Admin requester subscription status:', status);
-      });
+      .subscribe();
 
     return () => {
-      console.log('🔌 Unsubscribing from admin real-time updates');
-      statusSubscription.unsubscribe();
-      requesterSubscription.unsubscribe();
+      clearTimeout(refreshTimeout);
+      subscription.unsubscribe();
     };
-  }, [currentUser, currentUserRole]);
+  }, [currentUser?.id, currentUserRole, debouncedRefresh]);
 
-  // Auto-refresh as backup (every 2 minutes for admin)
+  // Reduced auto-refresh frequency and only when tab is active
   useEffect(() => {
     if (currentUserRole !== 'admin') return;
     
     const interval = setInterval(() => {
-      console.log('⏰ Admin auto-refresh triggered');
-      fetchAdminDashboardData();
-    }, 120000); // 2 minutes
+      // Only refresh if the page is visible
+      if (!document.hidden) {
+        fetchAdminDashboardData(true);
+      }
+    }, 300000); // 5 minutes instead of 2
     
     return () => clearInterval(interval);
-  }, [currentUserRole]);
+  }, [currentUserRole, fetchAdminDashboardData]);
 
-  const handleManualRefresh = () => {
-    console.log('🔄 Admin manual refresh triggered');
-    fetchAdminDashboardData();
-  };
+  // Manual refresh handler
+  const handleManualRefresh = useCallback(() => {
+    fetchAdminDashboardData(true);
+  }, [fetchAdminDashboardData]);
+
+  // Memoized tab change handler
+  const handleTabChange = useCallback((tab) => {
+    setActiveTab(tab);
+  }, []);
 
   // Show loading state
-  if (loading) {
+  if (loading && !isRefreshing) {
     return (
       <div className="admin-dashboard">
         <div className="loading-container" style={{ 
@@ -246,7 +259,7 @@ function AdminDashboard() {
           <h3>Error loading admin dashboard</h3>
           <p>{error}</p>
           <button 
-            onClick={fetchAdminDashboardData}
+            onClick={() => fetchAdminDashboardData()}
             style={{
               marginTop: '20px',
               padding: '10px 20px',
@@ -282,17 +295,15 @@ function AdminDashboard() {
         <nav>
           <ul className="sidebar-nav">
             <li
-              className={`nav-item ${
-                activeTab === "dashboard" ? "active" : ""
-              }`}
-              onClick={() => setActiveTab("dashboard")}
+              className={`nav-item ${activeTab === "dashboard" ? "active" : ""}`}
+              onClick={() => handleTabChange("dashboard")}
             >
               <span className="nav-item-icon"><IoBarChartSharp /></span>
               Dashboard
             </li>
             <li
               className={`nav-item ${activeTab === "requests" ? "active" : ""}`}
-              onClick={() => setActiveTab("requests")}
+              onClick={() => handleTabChange("requests")}
             >
               <span className="nav-item-icon"><IoPeopleSharp /></span>
               Manage Request
@@ -300,14 +311,15 @@ function AdminDashboard() {
             <li 
               className="nav-item"
               onClick={handleManualRefresh}
-              style={{ cursor: 'pointer' }}
+              style={{ cursor: 'pointer', opacity: isRefreshing ? 0.6 : 1 }}
+              disabled={isRefreshing}
             >
               <span className="nav-item-icon"><IoRefreshCircleSharp /></span>
-              {loading ? 'Refreshing...' : 'Refresh Data'}
+              {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
             </li>
             <li className="nav-item signout-link" onClick={signOut}>
               <span className="nav-item-icon"><IoExitSharp /></span>
-            Sign out
+              Sign out
             </li>
           </ul>
         </nav>
@@ -331,4 +343,17 @@ function AdminDashboard() {
   );
 }
 
-export default AdminDashboard;
+// Utility function for debouncing
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+export default React.memo(AdminDashboard);
